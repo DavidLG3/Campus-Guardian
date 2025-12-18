@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Zonas Suavizadas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100vw; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const colors = [
+  "#ff6666", "#ff9966", "#ffcc66", "#ffff66", "#ccff66",
+  "#99ff66", "#66ff99", "#66ffcc", "#66ffff", "#6699ff"
+];
+
+function style(i) {
+  return {
+    color: colors[i % colors.length],
+    weight: 1,
+    fillColor: colors[i % colors.length],
+    fillOpacity: 0.6,
+  };
+}
+
+const map = L.map('map').setView([40.546, -3.696], 15);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+const v = {
+  A: [40.548285, -3.702693],  
+  B: [40.546874, -3.702028],  
+  C: [40.544836, -3.700837],  
+  D: [40.545293, -3.699775],  
+  E: [40.543825, -3.698831],  
+  F: [40.542896, -3.698294],  
+  G: [40.542390, -3.699560],  
+  H: [40.542113, -3.697736],  
+  I: [40.540580, -3.692608],  
+  J: [40.541681, -3.689754],  
+  K: [40.542553, -3.687608],  
+  L: [40.547380, -3.683875],  
+  M: [40.550722, -3.686471],  
+  N: [40.550445, -3.692350],  
+  O: [40.545260, -3.689175],  
+  P: [40.544396, -3.691385],  
+  Q: [40.545129, -3.691857],  
+  R: [40.545977, -3.692372],  
+  S: [40.547559, -3.693316],  
+  T: [40.549695, -3.694904],  
+  U: [40.549581, -3.694346]
+};
+
+// Punto extra para ensanchar Zona 8 más hacia la izquierda
+const X = [40.5405, -3.697]; 
+
+// Estilo específico para Zona 6 (color más diferente)
+const styleZona6 = {
+  color: "#ff4500",       // borde naranja oscuro
+  weight: 1,
+  fillColor: "#ff6347",   // relleno rojo tomate
+  fillOpacity: 0.6
+};
+
+// ---- ZONA 1: triángulo ----
+L.polygon([v.A, v.B, v.T], style(0)).addTo(map).bindPopup("Zona 1");
+
+// ---- ZONA 2: pentágono final ----
+L.polygon([v.B, v.C, v.D, v.S, v.T], style(1)).addTo(map).bindPopup("Zona 2");
+
+// ---- ZONA 3 ----
+L.polygon([v.C, v.D, v.F, v.G], style(2)).addTo(map).bindPopup("Zona 3");
+
+// ---- ZONA 4+5 (fusionadas) ----
+L.polygon([v.D, v.S, v.R, v.E], style(3)).addTo(map).bindPopup("Zona 4+5");
+
+// ---- ZONA 6 ----
+L.polygon([v.E, v.F, v.Q, v.R], styleZona6).addTo(map).bindPopup("Zona 6");
+
+// ---- ZONA 7 ----
+L.polygon([v.F, v.H, v.P, v.Q], style(5)).addTo(map).bindPopup("Zona 7");
+
+// ---- ZONA 8 modificada y más ancha hacia la izquierda ----
+L.polygon([v.H, X, v.I, v.J, v.P], style(6)).addTo(map).bindPopup("Zona 8");
+
+// ---- ZONA 9 ----
+L.polygon([v.J, v.K, v.O, v.P], style(7)).addTo(map).bindPopup("Zona 9");
+
+// ---- ZONA 10 ----
+L.polygon([v.T, v.U, v.N, v.O, v.P, v.R, v.S], style(8)).addTo(map).bindPopup("Zona 10");
+
+// ---- ZONA 11 ----
+L.polygon([v.O, v.K, v.L, v.M, v.N], style(9)).addTo(map).bindPopup("Zona 11");
+</script>
+</body>
+</html>
