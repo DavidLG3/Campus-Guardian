@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model, authenticate
+from django.utils import timezone
 
 from app_models.models import Usuario, Incidencia, Alerta, Notificacion
 from .serializers import (
@@ -16,6 +17,19 @@ from .serializers import (
 )
 
 User = get_user_model()
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Endpoint de health check para mantener el servicio activo.
+    GET /api/health/
+    """
+    return Response({
+        "status": "healthy",
+        "timestamp": timezone.now().isoformat()
+    })
 
 
 @api_view(['POST'])

@@ -8,7 +8,8 @@ from .views import (
     AlertaViewSet,
     NotificacionViewSet,
     register,
-    login_view
+    login_view,
+    health_check
 )
 
 # Router para los ViewSets
@@ -19,6 +20,9 @@ router.register(r'alertas', AlertaViewSet, basename='alerta')
 router.register(r'notificaciones', NotificacionViewSet, basename='notificacion')
 
 urlpatterns = [
+    # Health check
+    path('health/', health_check, name='health_check'),
+    
     # Autenticación endpoints
     path('auth/login/', login_view, name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

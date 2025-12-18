@@ -152,6 +152,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { getIconForIncident } from '@/utils/leafletIcons'
 import { useIncidenciaStore } from '@/stores/incidencia'
 import { useAuthStore } from '@/stores/auth'
 import { useAlertaStore } from '@/stores/alerta'
@@ -254,7 +255,9 @@ function initMap() {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map)
     
-    L.marker([incidencia.value.latitud, incidencia.value.longitud])
+    const icon = getIconForIncident(incidencia.value.tipo)
+    
+    L.marker([incidencia.value.latitud, incidencia.value.longitud], { icon })
       .addTo(map)
       .bindPopup(incidencia.value.tipo)
       .openPopup()
