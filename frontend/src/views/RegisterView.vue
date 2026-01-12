@@ -81,7 +81,7 @@
         </div>
         
         <button type="submit" :disabled="isLoading" class="btn-primary">
-          {{ isLoading ? 'Creando cuenta...' : 'Registrarse' }}
+          <span>{{ isLoading ? 'Creando cuenta...' : 'Registrarse' }}</span>
         </button>
       </form>
       
@@ -155,126 +155,333 @@ async function handleRegister() {
 </script>
 
 <style scoped>
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #000;
   padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 204, 0, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.register-container::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 204, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 9s ease-in-out infinite reverse;
+  pointer-events: none;
 }
 
 .register-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem;
+  border-radius: var(--radius-2xl, 20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   width: 100%;
-  max-width: 400px;
+  max-width: 450px;
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.register-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-2xl, 20px);
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255, 204, 0, 0.3), rgba(0, 204, 255, 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.register-card:hover::before {
+  opacity: 1;
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: #fff;
   margin-bottom: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 48px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
 }
 
 h2 {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary, #a0a0a0);
   margin-bottom: 2rem;
-  font-size: 1.2rem;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) calc(0.3s + var(--delay, 0s)) backwards;
+}
+
+.form-group:nth-child(1) {
+  --delay: 0s;
+}
+
+.form-group:nth-child(2) {
+  --delay: 0.05s;
+}
+
+.form-group:nth-child(3) {
+  --delay: 0.1s;
+}
+
+.form-group:nth-child(4) {
+  --delay: 0.15s;
+}
+
+.form-group:nth-child(5) {
+  --delay: 0.2s;
+}
+
+.form-group:nth-child(6) {
+  --delay: 0.25s;
 }
 
 label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 input,
 select {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg, 12px);
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+select option {
+  background: #1a1a1a;
+  color: #fff;
 }
 
 input:focus,
 select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--warning, #ffcc00);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 204, 0, 0.2);
 }
 
 .help-text {
   display: block;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.4;
+  margin-top: 0.75rem;
+  font-size: 12px;
+  color: var(--text-secondary, #a0a0a0);
+  line-height: 1.6;
+  font-weight: 500;
+  background: rgba(255, 204, 0, 0.05);
+  padding: 0.75rem;
+  border-radius: var(--radius-md, 8px);
+  border-left: 3px solid var(--warning, #ffcc00);
 }
 
 .error-message {
-  background-color: #fee;
-  color: #c33;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(255, 68, 68, 0.1) 100%);
+  color: var(--error, #ff4444);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 12px);
+  border: 2px solid rgba(255, 68, 68, 0.3);
+  margin-bottom: 1.5rem;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .success-message {
-  background-color: #efe;
-  color: #3c3;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 255, 136, 0.1) 100%);
+  color: var(--success, #00ff88);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 12px);
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  margin-bottom: 1.5rem;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary {
   width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  color: #000;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--radius-lg, 12px);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--warning, #ffcc00);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary span {
+  position: relative;
+  z-index: 1;
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary:disabled::before {
+  display: none;
 }
 
 .login-link {
   text-align: center;
-  margin-top: 1.5rem;
-  color: #666;
+  margin-top: 2rem;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 14px;
+  font-weight: 600;
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s backwards;
 }
 
 .login-link a {
-  color: #667eea;
+  color: var(--warning, #ffcc00);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-fast, 0.15s);
+  position: relative;
+}
+
+.login-link a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--warning, #ffcc00);
+  transition: width var(--transition-base, 0.3s);
 }
 
 .login-link a:hover {
-  text-decoration: underline;
+  color: #fff;
+}
+
+.login-link a:hover::after {
+  width: 100%;
 }
 </style>
