@@ -72,7 +72,7 @@
                 Cancelar
               </router-link>
               <button type="submit" :disabled="isLoading" class="btn-submit">
-                {{ isLoading ? 'Enviando...' : 'Reportar Incidencia' }}
+                <span>{{ isLoading ? 'Enviando...' : 'Reportar Incidencia' }}</span>
               </button>
             </div>
           </form>
@@ -238,163 +238,284 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .nueva-incidencia-content {
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+  background: #000;
+  min-height: 100vh;
 }
 
 h1 {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  color: #333;
+  font-size: 42px;
+  margin-bottom: 3rem;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .form-container {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  padding: 3rem;
+  border-radius: var(--radius-2xl, 20px);
+  border: 2px solid var(--success, #00ff88);
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 input,
 textarea,
 select {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg, 12px);
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+select option {
+  background: #1a1a1a;
+  color: #fff;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--success, #00ff88);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 255, 136, 0.2);
 }
 
 textarea {
   resize: vertical;
+  line-height: 1.6;
 }
 
 .incidencia-map {
   width: 100%;
   height: 400px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg, 12px);
   margin-bottom: 1rem;
-  border: 2px solid #ddd;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
 .map-instructions {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 14px;
+  margin-bottom: 1rem;
   font-style: italic;
+  font-weight: 500;
 }
 
 .coordinates-info {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background: #f0f0f0;
-  border-radius: 4px;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: var(--radius-lg, 12px);
   text-align: center;
+  border: 2px solid rgba(0, 255, 136, 0.3);
 }
 
 .coordinates-info small {
-  color: #666;
+  color: var(--success, #00ff88);
   font-family: monospace;
+  font-weight: 700;
+  font-size: 13px;
 }
 
 .btn-secondary {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg, 12px);
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   cursor: pointer;
   margin-bottom: 1.5rem;
-  transition: opacity 0.3s;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
-  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .error-message {
-  background-color: #fee;
-  color: #c33;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(255, 68, 68, 0.1) 100%);
+  color: var(--error, #ff4444);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 12px);
+  border: 2px solid rgba(255, 68, 68, 0.3);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .success-message {
-  background-color: #efe;
-  color: #3c3;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 255, 136, 0.1) 100%);
+  color: var(--success, #00ff88);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 12px);
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .form-actions {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: flex-end;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-cancel {
-  padding: 0.75rem 1.5rem;
-  background-color: #6c757d;
-  color: white;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
   text-decoration: none;
-  border-radius: 4px;
-  font-weight: 600;
-  transition: opacity 0.3s;
+  border-radius: var(--radius-lg, 12px);
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-cancel:hover {
-  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
 }
 
 .btn-submit {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 1rem 2rem;
+  background: #fff;
+  color: #000;
   border: none;
-  border-radius: 4px;
-  font-weight: 600;
+  border-radius: var(--radius-lg, 12px);
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--success, #00ff88);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  z-index: 0;
+}
+
+.btn-submit:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-submit span {
+  position: relative;
+  z-index: 1;
 }
 
 .btn-submit:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
 }
 
 .btn-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn-submit:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-submit:disabled::before {
+  display: none;
 }
 
 /* Responsive Design */
@@ -404,23 +525,19 @@ textarea {
   }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 32px;
   }
 
   .form-container {
-    padding: 1.25rem;
+    padding: 2rem;
   }
 
-  #map {
-    height: 250px;
+  .incidencia-map {
+    height: 300px;
   }
 
-  .location-buttons {
-    flex-direction: column;
-  }
-
-  .btn-location {
-    width: 100%;
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -430,25 +547,26 @@ textarea {
   }
 
   h1 {
-    font-size: 1.25rem;
+    font-size: 28px;
   }
 
   .form-container {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
-  .form-group label {
-    font-size: 0.9rem;
+  .incidencia-map {
+    height: 250px;
   }
 
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    font-size: 0.9rem;
+  .form-actions {
+    flex-direction: column;
+    gap: 1rem;
   }
 
+  .btn-cancel,
   .btn-submit {
     width: 100%;
+    text-align: center;
   }
 }
 </style>

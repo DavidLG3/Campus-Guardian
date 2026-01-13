@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <SplashScreen v-if="showSplash" @start="handleStart" />
-    <router-view v-else v-slot="{ Component, route }">
+    <router-view v-slot="{ Component, route }">
       <Suspense>
         <template #default>
           <transition name="fade" mode="out-in">
@@ -20,35 +19,7 @@
 </template>
 
 <script setup>
-import { ref, onErrorCaptured } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import SplashScreen from '@/components/SplashScreen.vue'
-
-const router = useRouter()
-const authStore = useAuthStore()
-const showSplash = ref(true)
-
-const handleStart = async () => {
-  showSplash.value = false
-  
-  try {
-    // Verificar si hay token en cookies/localStorage
-    const token = localStorage.getItem('token')
-    
-    if (token && authStore.isAuthenticated) {
-      // Si hay sesión activa, ir al dashboard
-      await router.push('/dashboard')
-    } else {
-      // Si no hay sesión, ir al login
-      await router.push('/login')
-    }
-  } catch (error) {
-    console.error('Error en handleStart:', error)
-    // En caso de error, ir al login
-    router.push('/login')
-  }
-}
+import { onErrorCaptured } from 'vue'
 
 // Capturar errores globales
 onErrorCaptured((err, instance, info) => {

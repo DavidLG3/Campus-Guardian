@@ -90,59 +90,95 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .notificaciones-content {
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+  background: #000;
+  min-height: 100vh;
 }
 
 h1 {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  color: #333;
+  font-size: 42px;
+  margin-bottom: 3rem;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loading,
 .error,
 .empty {
   text-align: center;
-  padding: 3rem;
-  color: #666;
-  font-size: 1.1rem;
+  padding: 4rem;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 18px;
+  font-weight: 600;
+  animation: fadeIn 0.4s ease;
 }
 
 .error {
-  color: #dc3545;
+  color: var(--error, #ff4444);
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: var(--radius-xl, 16px);
+  border: 2px solid rgba(255, 68, 68, 0.3);
 }
 
 .notificaciones-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .notificacion-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border-radius: var(--radius-xl, 16px);
+  padding: 2rem;
+  border: 2px solid var(--success, #00ff88);
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
   display: flex;
-  gap: 1rem;
-  transition: all 0.3s ease;
+  gap: 1.5rem;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 .notificacion-card.no-leida {
-  border-left: 4px solid #667eea;
-  background: #f8f9ff;
+  border-left: 4px solid var(--success, #00ff88);
+  background: #fff;
 }
 
 .notificacion-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateX(4px);
+  border-color: var(--success, #00ff88);
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
 }
 
 .notif-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
 }
 
 .notif-content {
@@ -153,43 +189,72 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .notif-codigo {
-  background: #667eea;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  background: var(--success, #00ff88);
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .notif-fecha {
-  color: #999;
-  font-size: 0.85rem;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .notif-mensaje {
-  margin: 0 0 1rem 0;
-  color: #333;
-  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  line-height: 1.6;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .btn-marcar-leida {
-  padding: 0.5rem 1rem;
-  background-color: #667eea;
-  color: white;
+  padding: 0.75rem 1.5rem;
+  background: #fff;
+  color: #000;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-lg, 12px);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: opacity 0.3s;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-marcar-leida::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--success, #00ff88);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  z-index: 0;
+}
+
+.btn-marcar-leida:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-marcar-leida:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
 }
 
 /* Responsive */
@@ -199,17 +264,17 @@ h1 {
   }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 32px;
   }
 
   .notificacion-card {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
   .notif-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 }
 
@@ -219,11 +284,16 @@ h1 {
   }
 
   h1 {
-    font-size: 1.25rem;
+    font-size: 28px;
   }
 
   .notif-icon {
-    font-size: 1.5rem;
+    font-size: 2rem;
+  }
+
+  .notificacion-card {
+    padding: 1.25rem;
+    gap: 1rem;
   }
 }
 </style>

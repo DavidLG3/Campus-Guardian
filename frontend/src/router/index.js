@@ -4,7 +4,8 @@ import { useAuthStore } from '@/stores/auth'
 const routes = [
   {
     path: '/',
-    redirect: '/dashboard'
+    name: 'Splash',
+    component: () => import('@/views/SplashView.vue')
   },
   {
     path: '/login',
@@ -81,7 +82,19 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Si hay una posición guardada (navegación hacia atrás/adelante), usarla
+    if (savedPosition) {
+      return savedPosition
+    }
+    // Si hay un hash (#), hacer scroll a ese elemento
+    if (to.hash) {
+      return { el: to.hash, behavior: 'smooth' }
+    }
+    // Por defecto, hacer scroll al top
+    return { top: 0, behavior: 'smooth' }
+  }
 })
 
 // Navigation guards

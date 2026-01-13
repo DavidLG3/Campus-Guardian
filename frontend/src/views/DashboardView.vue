@@ -215,6 +215,15 @@ onMounted(async () => {
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0);
@@ -240,13 +249,15 @@ onMounted(async () => {
   max-width: 1000px;
   margin: 0 auto;
   animation: fadeIn 0.6s ease;
+  background: #000;
+  min-height: 100vh;
 }
 
 h1 {
   font-size: 42px;
   font-weight: 900;
   margin-bottom: 32px;
-  color: var(--text-dark);
+  color: #fff;
   letter-spacing: -0.03em;
   animation: slideUp 0.5s ease;
 }
@@ -255,7 +266,7 @@ h2 {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 16px;
-  color: var(--text-dark);
+  color: #fff;
   letter-spacing: -0.02em;
 }
 
@@ -269,10 +280,10 @@ h2 {
 }
 
 .stat-card {
-  background: var(--bg-white);
+  background: #fff;
+  border: 2px solid var(--success, #00ff88);
   padding: 24px;
   border-radius: var(--radius-xl);
-  border: 2px solid var(--border-light);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -281,6 +292,7 @@ h2 {
   transition: all var(--transition-base);
   position: relative;
   animation: scaleIn 0.5s ease backwards;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
@@ -292,15 +304,16 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.02) 100%);
+  background: rgba(0, 255, 136, 0.05);
   opacity: 0;
   transition: opacity var(--transition-base);
+  pointer-events: none;
 }
 
 .stat-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--text-dark);
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
+  border-color: var(--success, #00ff88);
 }
 
 .stat-card:hover::before {
@@ -322,13 +335,13 @@ h2 {
   font-size: 32px;
   font-weight: 900;
   margin: 0;
-  color: var(--text-dark);
+  color: #000;
   letter-spacing: -0.02em;
 }
 
 .stat-info p {
   margin: 0;
-  color: var(--text-secondary);
+  color: #666;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -346,10 +359,10 @@ h2 {
 }
 
 .section {
-  background: var(--bg-white);
+  background: #fff;
+  border: 2px solid var(--success, #00ff88);
   padding: 28px;
   border-radius: var(--radius-xl);
-  border: 2px solid var(--border-light);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -357,17 +370,19 @@ h2 {
   transition: all var(--transition-base);
   animation: slideUp 0.6s ease backwards;
   animation-delay: 0.3s;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
 }
 
 .section:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--text-secondary);
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
+  border-color: var(--success, #00ff88);
+  transform: translateY(-2px);
 }
 
 .loading, .empty {
   text-align: center;
   padding: 48px 20px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a0a0a0);
   font-size: 15px;
   font-weight: 500;
 }
@@ -381,12 +396,12 @@ h2 {
 }
 
 .incidencia-card {
-  background: var(--bg-light);
+  background: #f9f9f9;
   border-radius: var(--radius-lg);
   padding: 16px;
   cursor: pointer;
   transition: all var(--transition-base);
-  border: 2px solid transparent;
+  border: 2px solid #e0e0e0;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -398,7 +413,7 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.03) 100%);
+  background: rgba(0, 255, 136, 0.03);
   opacity: 0;
   transition: opacity var(--transition-base);
   pointer-events: none;
@@ -406,9 +421,9 @@ h2 {
 
 .incidencia-card:hover {
   transform: translateX(8px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--text-dark);
-  background: var(--bg-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--success, #00ff88);
+  background: #fff;
 }
 
 .incidencia-card:hover::after {
@@ -428,8 +443,8 @@ h2 {
 }
 
 .codigo-badge {
-  background: var(--text-dark);
-  color: white;
+  background: #000;
+  color: #fff;
   padding: 6px 12px;
   border-radius: var(--radius-md);
   font-size: 11px;
@@ -445,21 +460,25 @@ h2 {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: 2px solid;
 }
 
 .estado-badge.abierta {
-  background-color: var(--warning);
-  color: #000;
+  background: rgba(255, 204, 0, 0.2);
+  color: var(--warning, #ffcc00);
+  border-color: var(--warning, #ffcc00);
 }
 
 .estado-badge.en_progreso {
-  background-color: var(--info);
-  color: #000;
+  background: rgba(0, 204, 255, 0.2);
+  color: var(--info, #00ccff);
+  border-color: var(--info, #00ccff);
 }
 
 .estado-badge.resuelta {
-  background-color: var(--success);
-  color: #000;
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--success, #00ff88);
+  border-color: var(--success, #00ff88);
 }
 
 .card-body {
@@ -468,14 +487,14 @@ h2 {
 
 .tipo-incidencia {
   font-weight: 700;
-  color: var(--text-dark);
+  color: #000;
   font-size: 15px;
   margin-bottom: 6px;
   letter-spacing: -0.01em;
 }
 
 .descripcion {
-  color: var(--text-secondary);
+  color: #666;
   font-size: 14px;
   margin: 0;
   line-height: 1.5;
@@ -488,9 +507,9 @@ h2 {
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: #666;
   padding-top: 12px;
-  border-top: 2px solid var(--border-light);
+  border-top: 2px solid #e0e0e0;
   gap: 8px;
 }
 
@@ -516,72 +535,76 @@ h2 {
   padding: 16px;
   border-radius: var(--radius-lg);
   border-left: 4px solid;
-  background: var(--bg-light);
+  background: #f9f9f9;
   transition: all var(--transition-base);
 }
 
 .alerta-item:hover {
   transform: translateX(4px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #fff;
 }
 
 .alerta-item.alto {
-  border-color: var(--error);
-  background-color: rgba(255, 68, 68, 0.08);
+  border-color: var(--error, #ff4444);
+  background: rgba(255, 68, 68, 0.1);
 }
 
 .alerta-item.medio {
-  border-color: var(--warning);
-  background-color: rgba(255, 204, 0, 0.08);
+  border-color: var(--warning, #ffcc00);
+  background: rgba(255, 204, 0, 0.1);
 }
 
 .alerta-item.bajo {
-  border-color: var(--info);
-  background-color: rgba(0, 204, 255, 0.08);
+  border-color: var(--info, #00ccff);
+  background: rgba(0, 204, 255, 0.1);
 }
 
 .alerta-item strong {
   display: block;
   margin-bottom: 6px;
   font-size: 15px;
-  color: var(--text-dark);
+  color: #000;
   font-weight: 700;
 }
 
 .alerta-item p {
   margin: 0 0 6px 0;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #666;
   line-height: 1.5;
 }
 
 .alerta-item .fecha {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: #666;
   font-weight: 600;
 }
 
 .view-all {
   display: inline-flex;
   align-items: center;
-  color: var(--text-dark);
+  color: #000;
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
   padding: 8px 16px;
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
-  border: 2px solid transparent;
+  border: 2px solid var(--success, #00ff88);
+  background: #fff;
 }
 
 .view-all:hover {
-  background: var(--text-dark);
-  color: white;
+  background: var(--success, #00ff88);
+  color: #000;
   transform: translateX(4px);
+  border-color: var(--success, #00ff88);
 }
 
 .quick-actions {
-  background: var(--text-dark);
+  background: #fff;
+  border: 2px solid var(--success, #00ff88);
   padding: 32px 28px;
   border-radius: var(--radius-xl);
   width: 100%;
@@ -591,18 +614,19 @@ h2 {
   position: relative;
   animation: slideUp 0.6s ease backwards;
   animation-delay: 0.5s;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
 }
 
 .quick-actions::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+  background: rgba(0, 255, 136, 0.03);
   pointer-events: none;
 }
 
 .quick-actions h2 {
-  color: white;
+  color: #000;
   margin-bottom: 20px;
 }
 
@@ -617,8 +641,8 @@ h2 {
 .action-btn {
   padding: 16px;
   background: white;
-  border: 2px solid white;
-  color: var(--text-dark);
+  border: 2px solid #000;
+  color: #000;
   text-align: center;
   text-decoration: none;
   border-radius: var(--radius-lg);
@@ -632,17 +656,19 @@ h2 {
   white-space: nowrap;
   position: relative;
   letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .action-btn::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--text-dark);
+  background: var(--success, #00ff88);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--transition-base);
   z-index: 0;
+  pointer-events: none;
 }
 
 .action-btn > * {
@@ -652,8 +678,7 @@ h2 {
 
 .action-btn:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  color: white;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
 }
 
 .action-btn:hover::before {

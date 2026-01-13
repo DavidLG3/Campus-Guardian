@@ -208,7 +208,7 @@ function handleEditProfile() {
 async function handleLogout() {
   closeMenu()
   await authStore.logout()
-  router.push('/login')
+  router.push('/')
 }
 
 onMounted(() => {

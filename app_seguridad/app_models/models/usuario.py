@@ -15,6 +15,14 @@ class Usuario(AbstractUser):
         null=True,
         help_text="Rol del usuario dentro de la Universidad (ej: Estudiante, Profesor, Personal Administrativo)"
     )
+    
+    # Información de contacto
+    telefono = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Número de teléfono del usuario"
+    )
 
     def __str__(self):
         return f"{self.username} ({self.tipo})"

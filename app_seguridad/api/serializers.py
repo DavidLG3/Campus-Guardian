@@ -5,15 +5,40 @@ from app_models.models import Usuario, Incidencia, Alerta, Notificacion
 class UsuarioSerializer(serializers.ModelSerializer):
     """Serializer para el modelo Usuario"""
     password = serializers.CharField(write_only=True, required=False)
+    nombre = serializers.CharField(source='first_name', required=False)
+    telefono = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
     class Meta:
         model = Usuario
         fields = ['id', 'username', 'email', 'password', 'tipo', 'rol', 
-                  'first_name', 'last_name', 'is_active', 'date_joined']
-        read_only_fields = ['id', 'date_joined']
+                  'nombre', 'first_name', 'last_name', 'telefono', 'is_active', 'date_joined']
+        read_only_fields = ['id', 'date_joined', 'username']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'first_name': {'write_only': True}
         }
+    
+    def validate_email(self, value):
+        """Validar que el email no esté en uso por otro usuario"""
+        instance = self.instance
+        if instance:
+            # Si estamos actualizando, excluir el usuario actual
+            if Usuario.objects.exclude(pk=instance.pk).filter(email=value).exists():
+                raise serializers.ValidationError("Ya existe un usuario con ese correo electrónico")
+        else:
+            # Si estamos creando, verificar que no exista
+            if Usuario.objects.filter(email=value).exists():
+                raise serializers.ValidationError("Ya existe un usuario con ese correo electrónico")
+        return value
+    
+    def validate_password(self, value):
+        """Validar que la contraseña sea diferente a la anterior"""
+        instance = self.instance
+        if instance and value:
+            # Verificar si la nueva contraseña es diferente a la actual
+            if instance.check_password(value):
+                raise serializers.ValidationError("La nueva contraseña debe ser diferente a la anterior")
+        return value
     
     def create(self, validated_data):
         """Crear usuario con contraseña encriptada"""
@@ -27,12 +52,25 @@ class UsuarioSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Actualizar usuario, encriptando contraseña si se proporciona"""
         password = validated_data.pop('password', None)
+        
+        # Manejar el campo 'nombre' que mapea a 'first_name'
+        if 'first_name' in validated_data:
+            instance.first_name = validated_data.pop('first_name')
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        
         if password:
             instance.set_password(password)
+        
         instance.save()
         return instance
+    
+    def to_representation(self, instance):
+        """Personalizar la respuesta para incluir 'nombre' en lugar de 'first_name'"""
+        representation = super().to_representation(instance)
+        representation['nombre'] = instance.first_name
+        return representation
 
 
 class IncidenciaSerializer(serializers.ModelSerializer):
