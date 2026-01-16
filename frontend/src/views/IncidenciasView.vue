@@ -370,19 +370,19 @@ h1 {
 
 .estado-badge.abierta {
   background: rgba(255, 204, 0, 0.2);
-  color: var(--warning, #ffcc00);
+  color: #000;
   border-color: var(--warning, #ffcc00);
 }
 
 .estado-badge.en_progreso {
   background: rgba(0, 204, 255, 0.2);
-  color: var(--info, #00ccff);
+  color: #000;
   border-color: var(--info, #00ccff);
 }
 
 .estado-badge.resuelta {
   background: rgba(0, 255, 136, 0.2);
-  color: var(--success, #00ff88);
+  color: #000;
   border-color: var(--success, #00ff88);
 }
 
@@ -428,7 +428,7 @@ h1 {
 }
 
 .btn-view {
-  color: var(--success, #00ff88);
+  color: #000;
   text-decoration: none;
   font-weight: 800;
   font-size: 14px;
@@ -450,7 +450,7 @@ h1 {
 }
 
 .btn-view:hover {
-  color: #fff;
+  color: #000;
   transform: translateX(4px);
 }
 

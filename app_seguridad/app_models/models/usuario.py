@@ -23,6 +23,14 @@ class Usuario(AbstractUser):
         null=True,
         help_text="Número de teléfono del usuario"
     )
+    
+    # Foto de perfil
+    foto_perfil = models.ImageField(
+        upload_to='avatars/',
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del usuario"
+    )
 
     def __str__(self):
         return f"{self.username} ({self.tipo})"

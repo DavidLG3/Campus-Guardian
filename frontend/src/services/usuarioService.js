@@ -13,7 +13,14 @@ export default {
   
   // Actualizar perfil de usuario
   updateProfile(id, data) {
-    return apiClient.put(`/usuarios/${id}/`, data)
+    const config = {}
+    // Si es FormData (para subir archivos), configurar headers apropiados
+    if (data instanceof FormData) {
+      config.headers = {
+        'Content-Type': 'multipart/form-data'
+      }
+    }
+    return apiClient.put(`/usuarios/${id}/`, data, config)
   },
   
   // Cambiar contraseña

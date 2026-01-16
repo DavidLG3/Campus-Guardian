@@ -465,19 +465,19 @@ h2 {
 
 .estado-badge.abierta {
   background: rgba(255, 204, 0, 0.2);
-  color: var(--warning, #ffcc00);
+  color: #000;
   border-color: var(--warning, #ffcc00);
 }
 
 .estado-badge.en_progreso {
   background: rgba(0, 204, 255, 0.2);
-  color: var(--info, #00ccff);
+  color: #000;
   border-color: var(--info, #00ccff);
 }
 
 .estado-badge.resuelta {
   background: rgba(0, 255, 136, 0.2);
-  color: var(--success, #00ff88);
+  color: #000;
   border-color: var(--success, #00ff88);
 }
 

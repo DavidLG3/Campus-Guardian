@@ -59,6 +59,15 @@
               />
             </div>
             
+            <!-- Sección de archivos multimedia -->
+            <div class="form-group">
+              <label>Fotos y Videos (opcional)</label>
+              <p class="field-description">
+                Puedes adjuntar fotos o videos relacionados con la incidencia
+              </p>
+              <MediaCapture ref="mediaCaptureRef" @files-selected="handleFilesSelected" />
+            </div>
+            
             <div v-if="error" class="error-message">
               {{ error }}
             </div>
@@ -87,6 +96,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useIncidenciaStore } from '@/stores/incidencia'
 import AppLayout from '@/layouts/AppLayout.vue'
+import MediaCapture from '@/components/MediaCapture.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -101,12 +111,19 @@ const formData = ref({
   longitud: null
 })
 
+const mediaCaptureRef = ref(null)
+const selectedFiles = ref([])
+
 const isLoading = ref(false)
 const error = ref('')
 const success = ref('')
 
 let map = null
 let marker = null
+
+const handleFilesSelected = (files) => {
+  selectedFiles.value = files
+}
 
 onMounted(() => {
   initMap()
@@ -202,24 +219,38 @@ async function handleSubmit() {
   isLoading.value = true
   
   try {
-    const data = {
-      tipo: formData.value.tipo,
-      descripcion: formData.value.descripcion,
-    }
+    // Crear FormData para enviar archivos
+    const formDataToSend = new FormData()
+    
+    formDataToSend.append('tipo', formData.value.tipo)
+    formDataToSend.append('descripcion', formData.value.descripcion)
     
     if (formData.value.direccion) {
-      data.direccion = formData.value.direccion
+      formDataToSend.append('direccion', formData.value.direccion)
     }
     
     if (formData.value.latitud && formData.value.longitud) {
       // Redondear a 6 decimales para cumplir con validación del backend
-      data.latitud = parseFloat(parseFloat(formData.value.latitud).toFixed(6))
-      data.longitud = parseFloat(parseFloat(formData.value.longitud).toFixed(6))
+      formDataToSend.append('latitud', parseFloat(parseFloat(formData.value.latitud).toFixed(6)))
+      formDataToSend.append('longitud', parseFloat(parseFloat(formData.value.longitud).toFixed(6)))
     }
     
-    await incidenciaStore.create(data)
+    // Agregar archivos si existen
+    if (selectedFiles.value && selectedFiles.value.length > 0) {
+      selectedFiles.value.forEach((file) => {
+        formDataToSend.append('archivos', file)
+      })
+    }
+    
+    await incidenciaStore.create(formDataToSend)
     
     success.value = 'Incidencia reportada exitosamente. Redirigiendo...'
+    
+    // Limpiar archivos
+    if (mediaCaptureRef.value) {
+      mediaCaptureRef.value.clearFiles()
+    }
+    selectedFiles.value = []
     
     // Esperar un momento y recargar todas las incidencias antes de redirigir
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -359,6 +390,13 @@ textarea {
   margin-bottom: 1rem;
   font-style: italic;
   font-weight: 500;
+}
+
+.field-description {
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 13px;
+  margin: 8px 0 12px 0;
+  font-style: italic;
 }
 
 .coordinates-info {

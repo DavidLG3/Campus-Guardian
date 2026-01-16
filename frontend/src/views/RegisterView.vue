@@ -4,6 +4,24 @@
       <h1>Campus Guardian</h1>
       <h2>Crear Cuenta</h2>
       
+      <div class="avatar-section">
+        <div class="avatar-preview" @click="showAvatarEditor = true">
+          <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar" class="avatar-image" />
+          <div v-else class="avatar-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <button type="button" class="avatar-edit-btn" title="Añadir foto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+        </div>
+        <p class="avatar-label">Foto de perfil (opcional)</p>
+      </div>
+      
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="nombre">Nombre completo</label>
@@ -24,17 +42,22 @@
             type="email"
             required
             placeholder="tu@email.com"
+            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+            title="Introduce un email válido (ejemplo@dominio.com)"
           />
         </div>
         
         <div class="form-group">
-          <label for="telefono">Teléfono</label>
+          <label for="telefono">Teléfono (opcional)</label>
           <input
             id="telefono"
             v-model="formData.telefono"
             type="tel"
             placeholder="+34 600 000 000"
+            pattern="[\+]?[0-9\s\-\(\)]{9,20}"
+            title="Introduce un número de teléfono válido (9-15 dígitos)"
           />
+          <small class="help-text">Opcional. Puedes incluir código de país (+34, +1, etc.)</small>
         </div>
         
         <div class="form-group">
@@ -57,8 +80,11 @@
             v-model="formData.password"
             type="password"
             required
+            minlength="6"
             placeholder="••••••••"
+            title="Mínimo 6 caracteres, debe incluir letras y números"
           />
+          <small class="help-text">Mínimo 6 caracteres, debe contener letras y números</small>
         </div>
         
         <div class="form-group">
@@ -90,6 +116,12 @@
         <router-link to="/login">Inicia sesión aquí</router-link>
       </p>
     </div>
+    
+    <AvatarEditor 
+      v-if="showAvatarEditor" 
+      @close="showAvatarEditor = false"
+      @save="handleAvatarSave"
+    />
   </div>
 </template>
 
@@ -97,6 +129,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AvatarEditor from '@/components/AvatarEditor.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -113,6 +146,15 @@ const formData = ref({
 const error = ref('')
 const success = ref('')
 const isLoading = ref(false)
+const showAvatarEditor = ref(false)
+const avatarPreview = ref(null)
+const avatarBlob = ref(null)
+
+function handleAvatarSave(blob) {
+  avatarBlob.value = blob
+  avatarPreview.value = URL.createObjectURL(blob)
+  showAvatarEditor.value = false
+}
 
 async function handleRegister() {
   error.value = ''
@@ -132,6 +174,7 @@ async function handleRegister() {
   isLoading.value = true
   
   try {
+    // Registrar usuario
     await authStore.register({
       nombre: formData.value.nombre,
       email: formData.value.email,
@@ -139,6 +182,20 @@ async function handleRegister() {
       rol: formData.value.rol,
       password: formData.value.password
     })
+    
+    // Si hay avatar, subirlo después del registro
+    if (avatarBlob.value && authStore.user) {
+      try {
+        const formDataAvatar = new FormData()
+        formDataAvatar.append('foto_perfil', avatarBlob.value, 'avatar.jpg')
+        
+        const usuarioService = await import('@/services/usuarioService')
+        await usuarioService.default.updateProfile(authStore.user.id, formDataAvatar)
+      } catch (avatarErr) {
+        console.error('Error al subir avatar:', avatarErr)
+        // No bloqueamos el registro por error en avatar
+      }
+    }
     
     success.value = 'Cuenta creada exitosamente. Redirigiendo...'
     
@@ -272,6 +329,77 @@ h2 {
   font-weight: 600;
   letter-spacing: -0.01em;
   animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+.avatar-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  background: linear-gradient(135deg, #00ff88, #00ccff);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
+}
+
+.avatar-preview:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(0, 255, 136, 0.4);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-placeholder {
+  color: #000;
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  background: #00ff88;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.avatar-edit-btn:hover {
+  background: #00dd77;
+  transform: scale(1.1);
+}
+
+.avatar-edit-btn svg {
+  color: #000;
+}
+
+.avatar-label {
+  margin: 0;
+  font-size: 14px;
+  color: #a0a0a0;
+  font-weight: 600;
 }
 
 .form-group {

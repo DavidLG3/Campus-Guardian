@@ -54,6 +54,24 @@
                 </div>
               </div>
               
+              <!-- Sección de archivos adjuntos -->
+              <div v-if="incidencia.archivos && incidencia.archivos.length > 0" class="info-card">
+                <h2>Archivos Adjuntos ({{ incidencia.archivos.length }})</h2>
+                <div class="archivos-grid">
+                  <div v-for="archivo in incidencia.archivos" :key="archivo.id" class="archivo-item">
+                    <div v-if="archivo.tipo === 'imagen'" class="archivo-preview">
+                      <img :src="archivo.archivo_url" :alt="archivo.descripcion || 'Imagen'" @click="openImageModal(archivo.archivo_url)" />
+                    </div>
+                    <div v-else-if="archivo.tipo === 'video'" class="archivo-preview">
+                      <video :src="archivo.archivo_url" controls></video>
+                    </div>
+                    <div class="archivo-info">
+                      <span class="archivo-fecha">{{ formatDate(archivo.fecha_subida) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <div v-if="canChangeStatus" class="info-card">
                 <h2>Gestión de Incidencia</h2>
                 
@@ -136,10 +154,146 @@
             </div>
           </div>
           
+          <!-- Sección de Comentarios -->
+          <div class="comentarios-section">
+            <div class="comentarios-header">
+              <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Comentarios ({{ comentarios.length }})
+              </h2>
+              <p class="comentarios-subtitle">Comparte información adicional sobre esta incidencia</p>
+            </div>
+
+            <!-- Formulario para nuevo comentario -->
+            <div class="nuevo-comentario">
+              <div class="avatar-input-group">
+                <div class="user-avatar">
+                  <img 
+                    v-if="authStore.user?.foto_perfil_url" 
+                    :src="authStore.user.foto_perfil_url" 
+                    alt="Avatar"
+                  />
+                  <div v-else class="avatar-placeholder">
+                    {{ (authStore.user?.nombre || authStore.user?.username || '?').charAt(0).toUpperCase() }}
+                  </div>
+                </div>
+                <textarea
+                  v-model="nuevoComentario"
+                  placeholder="Escribe un comentario..."
+                  rows="3"
+                  @keydown.ctrl.enter="submitComentario"
+                ></textarea>
+              </div>
+              <div class="comentario-actions">
+                <span class="hint">Ctrl + Enter para enviar</span>
+                <button 
+                  @click="submitComentario" 
+                  :disabled="!nuevoComentario.trim() || isSubmittingComentario"
+                  class="btn-submit-comentario"
+                >
+                  <svg v-if="!isSubmittingComentario" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  <span v-if="isSubmittingComentario">Enviando...</span>
+                  <span v-else>Enviar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de comentarios -->
+            <div v-if="comentarios.length > 0" class="comentarios-list">
+              <div 
+                v-for="comentario in comentarios" 
+                :key="comentario.id" 
+                class="comentario-item"
+              >
+                <div class="comentario-avatar">
+                  <img 
+                    v-if="comentario.usuario_info.foto_perfil_url" 
+                    :src="comentario.usuario_info.foto_perfil_url" 
+                    alt="Avatar"
+                  />
+                  <div v-else class="avatar-placeholder">
+                    {{ comentario.usuario_info.nombre.charAt(0).toUpperCase() }}
+                  </div>
+                </div>
+                <div class="comentario-content">
+                  <div class="comentario-header-info">
+                    <span class="comentario-autor">
+                      {{ comentario.usuario_info.nombre }}
+                    </span>
+                    <span class="comentario-badge" :class="comentario.usuario_info.tipo">
+                      {{ formatTipoUsuario(comentario.usuario_info.tipo) }}
+                    </span>
+                    <span class="comentario-fecha">
+                      {{ formatDateRelative(comentario.fecha_creacion) }}
+                    </span>
+                  </div>
+                  <p class="comentario-texto">{{ comentario.contenido }}</p>
+                  <div v-if="canDeleteComentario(comentario)" class="comentario-actions-btn">
+                    <button @click="confirmDeleteComentario(comentario.id)" class="btn-delete-comentario">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="comentarios-empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <p>Aún no hay comentarios</p>
+              <p class="small">Sé el primero en comentar</p>
+            </div>
+          </div>
+          
           <div class="actions-section">
             <router-link to="/incidencias" class="btn-back">
               ← Volver a Incidencias
             </router-link>
+          </div>
+        </div>
+        
+        <!-- Modal para ver imágenes en grande -->
+        <div v-if="selectedImage" class="image-modal" @click="selectedImage = null">
+          <div class="modal-content" @click.stop>
+            <button class="modal-close" @click="selectedImage = null">✕</button>
+            <img :src="selectedImage" alt="Vista ampliada" />
+          </div>
+        </div>
+
+        <!-- Modal de confirmación de eliminación -->
+        <div v-if="showDeleteModal" class="delete-modal-overlay" @click="cancelDelete">
+          <div class="delete-modal" @click.stop>
+            <div class="delete-modal-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4336" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <h3>Eliminar Comentario</h3>
+            <p>¿Estás seguro de que quieres eliminar este comentario?</p>
+            <p class="warning-text">Esta acción no se puede deshacer.</p>
+            <div class="delete-modal-actions">
+              <button @click="cancelDelete" class="btn-cancel">
+                Cancelar
+              </button>
+              <button @click="deleteComentario" class="btn-confirm-delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -156,6 +310,7 @@ import { getIconForIncident } from '@/utils/leafletIcons'
 import { useIncidenciaStore } from '@/stores/incidencia'
 import { useAuthStore } from '@/stores/auth'
 import { useAlertaStore } from '@/stores/alerta'
+import comentarioService from '@/services/comentarioService'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const route = useRoute()
@@ -169,7 +324,17 @@ const isLoading = ref(false)
 const error = ref('')
 const notaResolucion = ref('')
 const mapRef = ref(null)
+const selectedImage = ref(null)
+const comentarios = ref([])
+const nuevoComentario = ref('')
+const isSubmittingComentario = ref(false)
+const showDeleteModal = ref(false)
+const comentarioToDelete = ref(null)
 let map = null
+
+const openImageModal = (url) => {
+  selectedImage.value = url
+}
 
 const canChangeStatus = computed(() => 
   authStore.isAdmin || authStore.isOperador
@@ -273,6 +438,9 @@ onMounted(async () => {
     const data = await incidenciaStore.fetchById(id)
     incidencia.value = data
     
+    // Cargar comentarios
+    await loadComentarios()
+    
     // Inicializar mapa después de cargar los datos
     setTimeout(initMap, 100)
   } catch (err) {
@@ -282,6 +450,109 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Funciones para comentarios
+const loadComentarios = async () => {
+  try {
+    console.log('Cargando comentarios para incidencia:', route.params.id)
+    const response = await comentarioService.getComentariosByIncidencia(route.params.id)
+    console.log('Comentarios recibidos:', response.data)
+    // El endpoint devuelve formato paginado con results
+    comentarios.value = response.data.results || response.data
+  } catch (err) {
+    console.error('Error cargando comentarios:', err)
+  }
+}
+
+const submitComentario = async () => {
+  if (!nuevoComentario.value.trim() || isSubmittingComentario.value) return
+  
+  isSubmittingComentario.value = true
+  const contenidoTemp = nuevoComentario.value.trim()
+  
+  try {
+    console.log('Enviando comentario:', {
+      incidencia: route.params.id,
+      contenido: contenidoTemp
+    })
+    
+    const response = await comentarioService.createComentario({
+      incidencia: route.params.id,
+      contenido: contenidoTemp
+    })
+    
+    console.log('Comentario creado:', response.data)
+    
+    // Limpiar el textarea solo después de éxito
+    nuevoComentario.value = ''
+    
+    // Recargar comentarios
+    await loadComentarios()
+    
+  } catch (err) {
+    console.error('Error completo:', err)
+    console.error('Response:', err.response)
+    alert('Error al crear el comentario: ' + (err.response?.data?.detail || err.message))
+  } finally {
+    // Asegurar que siempre se desbloquee el botón
+    isSubmittingComentario.value = false
+  }
+}
+
+const canDeleteComentario = (comentario) => {
+  return authStore.user?.id === comentario.usuario_info.id || authStore.isAdmin
+}
+
+const confirmDeleteComentario = (comentarioId) => {
+  comentarioToDelete.value = comentarioId
+  showDeleteModal.value = true
+}
+
+const cancelDelete = () => {
+  showDeleteModal.value = false
+  comentarioToDelete.value = null
+}
+
+const deleteComentario = async () => {
+  if (!comentarioToDelete.value) return
+  
+  try {
+    await comentarioService.deleteComentario(comentarioToDelete.value)
+    await loadComentarios()
+    showDeleteModal.value = false
+    comentarioToDelete.value = null
+  } catch (err) {
+    console.error('Error eliminando comentario:', err)
+    alert('Error al eliminar el comentario')
+  }
+}
+
+const formatTipoUsuario = (tipo) => {
+  const tipos = {
+    'administrador': 'Admin',
+    'operador': 'Operador',
+    'ciudadano': 'Ciudadano'
+  }
+  return tipos[tipo] || tipo
+}
+
+const formatDateRelative = (dateString) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now - date
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+  
+  if (seconds < 60) return 'Ahora'
+  if (minutes < 60) return `Hace ${minutes} min`
+  if (hours < 24) return `Hace ${hours}h`
+  if (days === 1) return 'Ayer'
+  if (days < 7) return `Hace ${days} días`
+  
+  return formatDate(dateString)
+}
 
 onUnmounted(() => {
   if (map) {
@@ -728,6 +999,122 @@ h2 {
   box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
 }
 
+/* Archivos adjuntos */
+.archivos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.archivo-item {
+  background: #f5f5f5;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.archivo-item:hover {
+  border-color: #00ff88;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+}
+
+.archivo-preview {
+  width: 100%;
+  height: 200px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.archivo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.archivo-preview img:hover {
+  transform: scale(1.05);
+}
+
+.archivo-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.archivo-info {
+  padding: 12px;
+  background: white;
+}
+
+.archivo-fecha {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Modal de imagen */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  cursor: pointer;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  cursor: default;
+}
+
+.modal-content img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  background: #00ff88;
+  border: none;
+  border-radius: 50%;
+  color: #000;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #00dd77;
+  transform: rotate(90deg);
+}
+
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -795,4 +1182,447 @@ h2 {
     text-align: center;
   }
 }
+
+/* Estilos para Comentarios */
+.comentarios-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.comentarios-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+}
+
+.comentarios-header h2 {
+  color: #00ff88;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comentarios-header h2 svg {
+  stroke: #00ff88;
+}
+
+.comentarios-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin: 0;
+}
+
+.nuevo-comentario {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(0, 255, 136, 0.15);
+}
+
+.avatar-input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.user-avatar img,
+.avatar-placeholder {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00ff88;
+}
+
+.avatar-placeholder {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0e27;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.avatar-input-group textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  color: white;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: all 0.3s ease;
+}
+
+.avatar-input-group textarea:focus {
+  outline: none;
+  border-color: #00ff88;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.avatar-input-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.comentario-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comentario-actions .hint {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+.btn-submit-comentario {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
+  color: #0a0e27;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.btn-submit-comentario:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+}
+
+.btn-submit-comentario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-submit-comentario svg {
+  stroke: #0a0e27;
+}
+
+.comentarios-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.comentario-item {
+  display: flex;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  animation: slideUp 0.4s ease;
+}
+
+.comentario-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 255, 136, 0.2);
+  transform: translateX(5px);
+}
+
+.comentario-avatar img,
+.comentario-avatar .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0, 255, 136, 0.5);
+}
+
+.comentario-avatar .avatar-placeholder {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.3) 0%, rgba(0, 204, 111, 0.3) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00ff88;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.comentario-content {
+  flex: 1;
+}
+
+.comentario-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.comentario-autor {
+  color: #00ff88;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.comentario-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.comentario-badge.administrador {
+  background: rgba(255, 67, 54, 0.2);
+  color: #ff4336;
+  border: 1px solid rgba(255, 67, 54, 0.3);
+}
+
+.comentario-badge.operador {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.comentario-badge.ciudadano {
+  background: rgba(156, 39, 176, 0.2);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.comentario-fecha {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+.comentario-texto {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comentario-actions-btn {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-delete-comentario {
+  background: transparent;
+  color: rgba(255, 67, 54, 0.8);
+  border: 1px solid rgba(255, 67, 54, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.3s ease;
+}
+
+.btn-delete-comentario:hover {
+  background: rgba(255, 67, 54, 0.1);
+  color: #ff4336;
+  border-color: #ff4336;
+}
+
+.btn-delete-comentario svg {
+  stroke: currentColor;
+}
+
+.comentarios-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.comentarios-empty svg {
+  margin-bottom: 1rem;
+  stroke: rgba(0, 255, 136, 0.3);
+}
+
+.comentarios-empty p {
+  margin: 0.5rem 0;
+  font-size: 16px;
+}
+
+.comentarios-empty p.small {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .comentarios-section {
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .comentarios-header h2 {
+    font-size: 20px;
+  }
+
+  .nuevo-comentario {
+    padding: 1rem;
+  }
+
+  .avatar-input-group {
+    flex-direction: column;
+  }
+
+  .comentario-item {
+    padding: 1rem;
+  }
+
+  .comentario-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .btn-submit-comentario {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Modal de confirmación de eliminación */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.delete-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  border: 2px solid rgba(255, 67, 54, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+  text-align: center;
+}
+
+.delete-modal-icon {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.delete-modal h3 {
+  color: #ff4336;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.delete-modal p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.delete-modal .warning-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.delete-modal-actions button {
+  flex: 1;
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-confirm-delete {
+  background: linear-gradient(135deg, #ff4336 0%, #d32f2f 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(255, 67, 54, 0.3);
+}
+
+.btn-confirm-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 67, 54, 0.5);
+}
+
+.btn-confirm-delete svg {
+  stroke: white;
+}
+
+@media (max-width: 480px) {
+  .delete-modal {
+    padding: 1.5rem;
+  }
+
+  .delete-modal-actions {
+    flex-direction: column;
+  }
+
+  .delete-modal-actions button {
+    width: 100%;
+  }
+}
 </style>
+

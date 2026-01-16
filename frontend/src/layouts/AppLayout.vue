@@ -31,18 +31,21 @@
     
     <!-- Fullscreen Mobile Menu -->
     <transition name="slide">
-      <div v-if="menuOpen" class="mobile-menu">
+      <div v-if="menuOpen" class="mobile-menu" @click.self="closeMenu">
         <div class="mobile-menu-content">
           <!-- User Info Section -->
-          <div class="menu-user-info">
+          <div class="menu-header">
             <div class="user-avatar">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="8" r="4"/>
-                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-              </svg>
+              <img v-if="authStore.user?.foto_perfil_url" :src="authStore.user.foto_perfil_url" alt="Avatar" class="avatar-image" />
+              <span v-else class="avatar-initials">{{ getInitials() }}</span>
             </div>
-            <strong>{{ authStore.user?.nombre || 'Usuario' }}</strong>
-            <span class="role-badge">{{ formatRole(authStore.userRole) }}</span>
+            <div class="user-details">
+              <strong>{{ authStore.user?.nombre || 'Usuario' }}</strong>
+              <span class="role-badge">{{ formatRole(authStore.userRole) }}</span>
+            </div>
+            <button @click="closeMenu" class="menu-close-btn" title="Cerrar menú">
+              ✕
+            </button>
           </div>
           
           <div class="menu-divider"></div>
@@ -153,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAlertaStore } from '@/stores/alerta'
@@ -183,6 +186,34 @@ const notificacionesNoLeidas = computed(() => {
   }
 })
 
+// Intervalo para polling de alertas/notificaciones
+let pollingInterval = null
+
+const startPolling = () => {
+  // Consultar cada 3 segundos para actualizaciones casi en tiempo real
+  pollingInterval = setInterval(() => {
+    if (authStore.isAuthenticated) {
+      if (authStore.isAdmin || authStore.isOperador) {
+        alertaStore.fetchAll().catch(err => {
+          console.error('Error en polling de alertas:', err)
+        })
+      }
+      if (authStore.isCiudadano) {
+        notificacionStore.fetchAll().catch(err => {
+          console.error('Error en polling de notificaciones:', err)
+        })
+      }
+    }
+  }, 3000) // 3 segundos
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
 function formatRole(role) {
   const roles = {
     'admin': 'Administrador',
@@ -198,6 +229,11 @@ function toggleMenu() {
 
 function closeMenu() {
   menuOpen.value = false
+}
+
+function getInitials() {
+  const nombre = authStore.user?.nombre || authStore.user?.email || 'U'
+  return nombre.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
 }
 
 function handleEditProfile() {
@@ -223,7 +259,15 @@ onMounted(() => {
         console.error('Error cargando notificaciones en AppLayout:', err)
       })
     }
+    
+    // Iniciar polling para actualizaciones en tiempo real
+    startPolling()
   }
+})
+
+onUnmounted(() => {
+  // Limpiar el intervalo al desmontar el componente
+  stopPolling()
 })
 </script>
 
@@ -371,119 +415,164 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100vh;
-  background: var(--bg-white);
+  background: #fff;
   z-index: 1001;
   overflow-y: auto;
-  padding-top: 64px;
 }
 
 .mobile-menu-content {
-  padding: 32px 20px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 
-/* User Info Section with gradient */
-.menu-user-info {
+/* Menu Header with User Info */
+.menu-header {
+  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+  padding: 32px 24px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 32px 24px;
-  background: var(--text-dark);
-  border-radius: var(--radius-xl);
   position: relative;
-  overflow: hidden;
 }
 
-.menu-user-info::before {
+.menu-header::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 100%);
-  pointer-events: none;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.3), transparent);
 }
 
 .user-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00ff88, #00ccff);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  transition: all var(--transition-base);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid rgba(0, 255, 136, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
 }
 
-.user-avatar:hover {
-  transform: scale(1.05);
-  border-color: rgba(255, 255, 255, 0.4);
+.user-avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.user-avatar svg {
-  stroke: white;
+.user-avatar .avatar-initials {
+  font-size: 24px;
+  font-weight: 900;
+  color: #000;
+  text-transform: uppercase;
 }
 
-.menu-user-info strong {
-  font-size: 20px;
-  text-align: center;
-  color: white;
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-details strong {
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  color: white;
+  line-height: 1.2;
 }
 
-.role-badge {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  padding: 6px 16px;
-  border-radius: var(--radius-full);
+.menu-header .role-badge {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  padding: 4px 12px;
+  border-radius: 12px;
   font-size: 12px;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  display: inline-block;
+  width: fit-content;
+}
+
+.menu-close-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 32px;
+  color: #00ff88 !important;
+  font-weight: 300;
+  line-height: 1;
+  transition: none !important;
+  transform: none !important;
+  pointer-events: auto;
+}
+
+.menu-close-btn:hover,
+.menu-close-btn:active,
+.menu-close-btn:focus {
+  background: transparent !important;
+  color: #00ff88 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 .menu-divider {
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--border-light) 50%, transparent 100%);
-  margin: 12px 0;
+  height: 1px;
+  background: #e5e5e5;
+  margin: 0 24px;
 }
 
 /* Navigation Links with smooth animations */
 .menu-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  padding: 24px 12px;
+  gap: 8px;
+  flex: 1;
 }
 
 .menu-link {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  color: var(--text-dark);
+  gap: 16px;
+  padding: 20px 24px;
+  color: #1a1a1a;
   text-decoration: none;
-  border-radius: var(--radius-lg);
-  font-size: 16px;
+  border-radius: 14px;
+  font-size: 17px;
   font-weight: 600;
-  transition: all var(--transition-base);
+  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  background: transparent;
 }
 
-.menu-link::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 70%;
-  background: var(--text-dark);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  transition: width var(--transition-base);
+.menu-link:hover {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.menu-link.router-link-active {
+  background: linear-gradient(135deg, #00ff88, #00dd77);
+  color: #000;
+}
+
+.menu-link svg {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .menu-link svg {
@@ -534,20 +623,21 @@ onMounted(() => {
 .menu-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 0 12px 24px 12px;
 }
 
 .menu-action-btn {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 16px;
+  padding: 18px 24px;
   background: var(--bg-white);
   border: 2px solid var(--border-light);
   border-radius: var(--radius-lg);
   color: var(--text-dark);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
@@ -566,6 +656,8 @@ onMounted(() => {
 
 .menu-action-btn svg {
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
   stroke: var(--text-dark);
   transition: stroke var(--transition-base);
   z-index: 1;

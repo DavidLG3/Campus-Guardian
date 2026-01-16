@@ -7,6 +7,7 @@ from .views import (
     IncidenciaViewSet, 
     AlertaViewSet,
     NotificacionViewSet,
+    ComentarioViewSet,
     register,
     login_view,
     health_check
@@ -18,6 +19,7 @@ router.register(r'usuarios', UsuarioViewSet, basename='usuario')
 router.register(r'incidencias', IncidenciaViewSet, basename='incidencia')
 router.register(r'alertas', AlertaViewSet, basename='alerta')
 router.register(r'notificaciones', NotificacionViewSet, basename='notificacion')
+router.register(r'comentarios', ComentarioViewSet, basename='comentario')
 
 urlpatterns = [
     # Health check

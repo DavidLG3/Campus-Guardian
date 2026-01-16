@@ -3,6 +3,8 @@ from .models import Usuario
 from .models import Alerta
 from .models import Incidencia
 from .models import Notificacion
+from .models import ArchivoIncidencia
+from .models import Comentario
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
@@ -27,3 +29,18 @@ class NotificacionAdmin(admin.ModelAdmin):
     list_display = ("usuario", "incidencia", "tipo", "leida", "fecha_creacion")
     list_filter = ("tipo", "leida", "fecha_creacion")
     search_fields = ("mensaje", "usuario__username")
+@admin.register(ArchivoIncidencia)
+class ArchivoIncidenciaAdmin(admin.ModelAdmin):
+    list_display = ("incidencia", "tipo", "archivo", "fecha_subida")
+    list_filter = ("tipo", "fecha_subida")
+    search_fields = ("incidencia__codigo_unico", "descripcion")
+
+@admin.register(Comentario)
+class ComentarioAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "incidencia", "contenido_corto", "fecha_creacion")
+    list_filter = ("fecha_creacion",)
+    search_fields = ("contenido", "usuario__username", "incidencia__codigo_unico")
+    
+    def contenido_corto(self, obj):
+        return obj.contenido[:50] + "..." if len(obj.contenido) > 50 else obj.contenido
+    contenido_corto.short_description = "Contenido"

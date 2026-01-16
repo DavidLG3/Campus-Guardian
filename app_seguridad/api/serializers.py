@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from app_models.models import Usuario, Incidencia, Alerta, Notificacion
+from app_models.models import Usuario, Incidencia, Alerta, Notificacion, ArchivoIncidencia, Comentario
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -7,16 +7,28 @@ class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
     nombre = serializers.CharField(source='first_name', required=False)
     telefono = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    foto_perfil = serializers.ImageField(required=False, allow_null=True)
+    foto_perfil_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Usuario
         fields = ['id', 'username', 'email', 'password', 'tipo', 'rol', 
-                  'nombre', 'first_name', 'last_name', 'telefono', 'is_active', 'date_joined']
-        read_only_fields = ['id', 'date_joined', 'username']
+                  'nombre', 'first_name', 'last_name', 'telefono', 'foto_perfil', 
+                  'foto_perfil_url', 'is_active', 'date_joined']
+        read_only_fields = ['id', 'date_joined', 'username', 'foto_perfil_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'first_name': {'write_only': True}
         }
+    
+    def get_foto_perfil_url(self, obj):
+        """Obtener URL completa de la foto de perfil"""
+        if obj.foto_perfil:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.foto_perfil.url)
+            return obj.foto_perfil.url
+        return None
     
     def validate_email(self, value):
         """Validar que el email no esté en uso por otro usuario"""
@@ -57,6 +69,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if 'first_name' in validated_data:
             instance.first_name = validated_data.pop('first_name')
         
+        # Preservar is_active si no se envía explícitamente
+        if 'is_active' not in validated_data:
+            validated_data['is_active'] = instance.is_active
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         
@@ -73,6 +89,50 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return representation
 
 
+class ArchivoIncidenciaSerializer(serializers.ModelSerializer):
+    """Serializer para archivos adjuntos de incidencias"""
+    archivo_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ArchivoIncidencia
+        fields = ['id', 'archivo', 'archivo_url', 'tipo', 'descripcion', 'fecha_subida']
+        read_only_fields = ['id', 'fecha_subida']
+    
+    def get_archivo_url(self, obj):
+        """Obtener URL completa del archivo"""
+        if obj.archivo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.archivo.url)
+            return obj.archivo.url
+        return None
+
+
+class ComentarioSerializer(serializers.ModelSerializer):
+    """Serializer para comentarios en incidencias"""
+    usuario_info = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Comentario
+        fields = ['id', 'incidencia', 'usuario', 'usuario_info', 'contenido', 'fecha_creacion']
+        read_only_fields = ['id', 'fecha_creacion', 'usuario', 'usuario_info']
+    
+    def get_usuario_info(self, obj):
+        foto_url = None
+        if obj.usuario.foto_perfil:
+            request = self.context.get('request')
+            if request:
+                foto_url = request.build_absolute_uri(obj.usuario.foto_perfil.url)
+        
+        return {
+            'id': obj.usuario.id,
+            'nombre': obj.usuario.first_name or obj.usuario.username,
+            'username': obj.usuario.username,
+            'tipo': obj.usuario.tipo,
+            'foto_perfil_url': foto_url
+        }
+
+
 class IncidenciaSerializer(serializers.ModelSerializer):
     """Serializer para el modelo Incidencia"""
     usuario_reporta = serializers.SerializerMethodField()
@@ -80,13 +140,15 @@ class IncidenciaSerializer(serializers.ModelSerializer):
     resuelto_por_nombre = serializers.SerializerMethodField()
     fecha_creacion = serializers.DateTimeField(source='fecha_reporte', read_only=True)
     estado = serializers.SerializerMethodField()
+    archivos = ArchivoIncidenciaSerializer(many=True, read_only=True)
+    comentarios = ComentarioSerializer(many=True, read_only=True)
     
     class Meta:
         model = Incidencia
         fields = ['id', 'codigo_unico', 'descripcion', 'tipo', 'fecha_creacion', 'fecha_reporte',
                   'usuario', 'usuario_reporta', 'usuario_asignado', 'asignado_a', 'latitud', 'longitud', 
                   'direccion', 'estado', 'nota_resolucion', 'fecha_resolucion', 
-                  'resuelto_por', 'resuelto_por_nombre']
+                  'resuelto_por', 'resuelto_por_nombre', 'archivos', 'comentarios']
         read_only_fields = ['id', 'codigo_unico', 'fecha_reporte', 'fecha_creacion']
         read_only_fields = ['id', 'fecha_reporte', 'fecha_creacion']
     
@@ -135,6 +197,7 @@ class IncidenciaCreateSerializer(serializers.ModelSerializer):
         # Por defecto, estado pendiente
         validated_data['estado'] = 'pendiente'
         return super().create(validated_data)
+        return incidencia
 
 
 class AlertaSerializer(serializers.ModelSerializer):
@@ -233,9 +296,56 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['nombre', 'email', 'telefono', 'rol', 'password']
     
     def validate_email(self, value):
-        """Validar que el email no esté ya registrado"""
+        """Validar que el email no esté ya registrado y tenga formato válido"""
+        import re
+        
+        # Validar formato de email
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, value):
+            raise serializers.ValidationError("El formato del email no es válido")
+        
+        # Validar que no esté registrado
         if Usuario.objects.filter(email=value).exists():
             raise serializers.ValidationError("Este email ya está registrado")
+        return value.lower()
+    
+    def validate_telefono(self, value):
+        """Validar formato de teléfono si se proporciona"""
+        import re
+        
+        if not value or value.strip() == '':
+            return ''
+        
+        # Eliminar espacios y caracteres comunes
+        cleaned = re.sub(r'[\s\-\(\)]', '', value)
+        
+        # Validar que contenga solo dígitos y opcionalmente un +
+        if not re.match(r'^\+?\d{9,15}$', cleaned):
+            raise serializers.ValidationError(
+                "El teléfono debe contener entre 9 y 15 dígitos. "
+                "Puede incluir + al inicio para código de país."
+            )
+        
+        return cleaned
+    
+    def validate_nombre(self, value):
+        """Validar que el nombre tenga al menos 2 caracteres"""
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError("El nombre debe tener al menos 2 caracteres")
+        return value.strip()
+    
+    def validate_password(self, value):
+        """Validar contraseña robusta"""
+        if len(value) < 6:
+            raise serializers.ValidationError("La contraseña debe tener al menos 6 caracteres")
+        
+        # Verificar que tenga al menos una letra y un número
+        if not any(c.isalpha() for c in value):
+            raise serializers.ValidationError("La contraseña debe contener al menos una letra")
+        
+        if not any(c.isdigit() for c in value):
+            raise serializers.ValidationError("La contraseña debe contener al menos un número")
+        
         return value
     
     def create(self, validated_data):

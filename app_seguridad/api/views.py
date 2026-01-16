@@ -6,14 +6,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
 
-from app_models.models import Usuario, Incidencia, Alerta, Notificacion
+from app_models.models import Usuario, Incidencia, Alerta, Notificacion, ArchivoIncidencia, Comentario
 from .serializers import (
     UsuarioSerializer, 
     IncidenciaSerializer, 
     IncidenciaCreateSerializer,
     AlertaSerializer,
     RegisterSerializer,
-    NotificacionSerializer
+    NotificacionSerializer,
+    ComentarioSerializer
 )
 
 User = get_user_model()
@@ -66,17 +67,13 @@ def login_view(request):
         # Generar tokens
         refresh = RefreshToken.for_user(user)
         
+        # Usar el serializer para obtener todos los datos del usuario
+        serializer = UsuarioSerializer(user, context={'request': request})
+        
         return Response({
             'token': str(refresh.access_token),
             'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'nombre': user.first_name,
-                'email': user.email,
-                'username': user.username,
-                'rol': user.rol or 'ciudadano',
-                'tipo': user.tipo
-            }
+            'user': serializer.data
         })
     else:
         return Response(
@@ -121,6 +118,16 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+    
+    def update(self, request, *args, **kwargs):
+        """Sobrescribir update para usar partial=True siempre"""
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Sobrescribir partial_update para asegurar partial=True"""
+        kwargs['partial'] = True
+        return super().partial_update(request, *args, **kwargs)
     
     @action(detail=False, methods=['get'])
     def me(self, request):
@@ -174,12 +181,37 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Crear incidencia y retornar respuesta completa con todos los campos"""
-        serializer = self.get_serializer(data=request.data)
+        # Extraer archivos del request
+        archivos = request.FILES.getlist('archivos')
+        
+        # Copiar datos del request sin los archivos para el serializer
+        data = request.data.copy()
+        if 'archivos' in data:
+            del data['archivos']
+        
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         incidencia = serializer.save(usuario=request.user)
         
+        # Procesar archivos manualmente
+        for archivo in archivos:
+            # Determinar tipo basado en el content_type
+            content_type = archivo.content_type
+            if content_type.startswith('image/'):
+                tipo = 'imagen'
+            elif content_type.startswith('video/'):
+                tipo = 'video'
+            else:
+                continue  # Ignorar archivos que no sean imágenes o videos
+            
+            ArchivoIncidencia.objects.create(
+                incidencia=incidencia,
+                archivo=archivo,
+                tipo=tipo
+            )
+        
         # Usar el serializer completo para la respuesta
-        response_serializer = IncidenciaSerializer(incidencia)
+        response_serializer = IncidenciaSerializer(incidencia, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
     def perform_create(self, serializer):
@@ -404,4 +436,23 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         """Contar notificaciones no leídas"""
         count = self.get_queryset().filter(leida=False).count()
         return Response({'count': count})
+
+
+class ComentarioViewSet(viewsets.ModelViewSet):
+    """ViewSet para comentarios de incidencias"""
+    serializer_class = ComentarioSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Filtra comentarios por incidencia si se proporciona el parámetro"""
+        queryset = Comentario.objects.all()
+        incidencia_id = self.request.query_params.get('incidencia', None)
+        if incidencia_id:
+            queryset = queryset.filter(incidencia_id=incidencia_id)
+        return queryset.select_related('usuario', 'incidencia')
+    
+    def perform_create(self, serializer):
+        """Asigna automáticamente el usuario actual al crear el comentario"""
+        serializer.save(usuario=self.request.user)
+
 
