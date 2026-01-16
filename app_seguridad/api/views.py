@@ -190,6 +190,13 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
         
         # Extraer archivos del request
         archivos = request.FILES.getlist('archivos')
+        print(f"\n{'='*60}")
+        print(f"📁 ARCHIVOS RECIBIDOS: {len(archivos)}")
+        for idx, archivo in enumerate(archivos):
+            print(f"  {idx+1}. Nombre: {archivo.name}")
+            print(f"     Tipo: {archivo.content_type}")
+            print(f"     Tamaño: {archivo.size / (1024*1024):.2f} MB")
+        print(f"{'='*60}\n")
         
         # Copiar datos del request sin los archivos para el serializer
         data = request.data.copy()
@@ -202,27 +209,38 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             incidencia = serializer.save(usuario=request.user)
             
             # Procesar archivos manualmente
+            archivos_guardados = 0
             for archivo in archivos:
                 try:
                     # Determinar tipo basado en el content_type
                     content_type = archivo.content_type
+                    print(f"\n🔍 Procesando archivo: {archivo.name} ({content_type})")
+                    
                     if content_type.startswith('image/'):
                         tipo = 'imagen'
                     elif content_type.startswith('video/'):
                         tipo = 'video'
                     else:
+                        print(f"⚠️  Tipo de archivo no soportado: {content_type}")
                         continue  # Ignorar archivos que no sean imágenes o videos
                     
-                    ArchivoIncidencia.objects.create(
+                    print(f"💾 Guardando como: {tipo}")
+                    archivo_obj = ArchivoIncidencia.objects.create(
                         incidencia=incidencia,
                         archivo=archivo,
                         tipo=tipo
                     )
+                    print(f"✅ Archivo guardado con ID: {archivo_obj.id}")
+                    print(f"   URL: {archivo_obj.archivo.url if archivo_obj.archivo else 'NO URL'}")
+                    archivos_guardados += 1
+                    
                 except Exception as e:
-                    print(f"ERROR al procesar archivo {archivo.name}: {str(e)}")
+                    print(f"❌ ERROR al procesar archivo {archivo.name}: {str(e)}")
                     import traceback
                     traceback.print_exc()
                     # Continuar con los demás archivos
+            
+            print(f"\n📊 RESUMEN: {archivos_guardados}/{len(archivos)} archivos guardados correctamente\n")
             
             # Usar el serializer completo para la respuesta
             response_serializer = IncidenciaSerializer(incidencia, context={'request': request})
@@ -434,10 +452,9 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retornar solo notificaciones del usuario actual"""
         queryset = Notificacion.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
-        print(f"[NOTIF] Usuario solicitante: {self.request.user.username}")
-        print(f"[NOTIF] Notificaciones encontradas: {queryset.count()}")
-        for notif in queryset:
-            print(f"  - ID: {notif.id}, Tipo: {notif.tipo}, Mensaje: {notif.mensaje[:50]}")
+        # Logging desactivado para no llenar los logs
+        # print(f"[NOTIF] Usuario solicitante: {self.request.user.username}")
+        # print(f"[NOTIF] Notificaciones encontradas: {queryset.count()}")
         return queryset
     
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
