@@ -93,7 +93,7 @@
         <div class="quick-actions">
           <h2>Acciones Rápidas</h2>
           <div class="actions-grid">
-            <router-link to="/incidencias/nueva" class="action-btn">
+            <router-link v-if="authStore.isCiudadano" to="/incidencias/nueva" class="action-btn">
               ➕ Nueva Incidencia
             </router-link>
             <router-link to="/mapa" class="action-btn">

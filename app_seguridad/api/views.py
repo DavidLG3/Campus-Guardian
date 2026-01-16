@@ -181,6 +181,13 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Crear incidencia y retornar respuesta completa con todos los campos"""
+        # Validar que solo ciudadanos puedan crear incidencias
+        if request.user.tipo != 'normal':
+            return Response(
+                {'error': 'Solo los ciudadanos pueden reportar incidencias'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         # Extraer archivos del request
         archivos = request.FILES.getlist('archivos')
         
@@ -371,8 +378,10 @@ class AlertaViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def get_queryset(self):
-        """Retornar todas las alertas ordenadas por fecha"""
-        return Alerta.objects.all().order_by('-fecha_creacion')
+        """Retornar solo las alertas del usuario actual ordenadas por fecha"""
+        if self.request.user.is_authenticated:
+            return Alerta.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
+        return Alerta.objects.none()
     
     def perform_create(self, serializer):
         """

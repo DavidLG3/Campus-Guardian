@@ -47,7 +47,7 @@ const routes = [
     path: '/incidencias/nueva',
     name: 'NuevaIncidencia',
     component: () => import('@/views/NuevaIncidenciaView.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, roles: ['ciudadano'] }
   },
   {
     path: '/incidencias/:id',

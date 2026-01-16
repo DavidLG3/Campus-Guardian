@@ -4,7 +4,7 @@
       <div class="incidencias-content">
         <div class="header">
           <h1>Incidencias</h1>
-          <router-link to="/incidencias/nueva" class="btn-primary">
+          <router-link v-if="authStore.isCiudadano" to="/incidencias/nueva" class="btn-primary">
             ➕ Nueva Incidencia
           </router-link>
         </div>
@@ -84,9 +84,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useIncidenciaStore } from '@/stores/incidencia'
+import { useAuthStore } from '@/stores/auth'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const incidenciaStore = useIncidenciaStore()
+const authStore = useAuthStore()
 
 const filtroEstado = ref('')
 const filtroTipo = ref('')

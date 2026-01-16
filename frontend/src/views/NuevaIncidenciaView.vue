@@ -341,23 +341,23 @@ textarea,
 select {
   width: 100%;
   padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: #f8f8f8;
+  border: 2px solid #e0e0e0;
   border-radius: var(--radius-lg, 12px);
   font-size: 16px;
-  color: #fff;
+  color: #000;
   font-weight: 600;
   transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 select option {
-  background: #1a1a1a;
-  color: #fff;
+  background: #fff;
+  color: #000;
 }
 
 input:focus,
@@ -365,7 +365,7 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--success, #00ff88);
-  background: rgba(255, 255, 255, 0.08);
+  background: #fff;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 255, 136, 0.2);
 }
@@ -498,62 +498,42 @@ textarea {
 
 .btn-submit {
   padding: 1rem 2rem;
-  background: #fff;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
   color: #000;
   border: none;
   border-radius: var(--radius-lg, 12px);
-  font-weight: 800;
-  font-size: 14px;
+  font-weight: 900;
+  font-size: 16px;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-submit::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: var(--success, #00ff88);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-  z-index: 0;
-}
-
-.btn-submit:hover::before {
-  width: 300px;
-  height: 300px;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
 }
 
 .btn-submit span {
   position: relative;
   z-index: 1;
+  font-weight: 900;
 }
 
 .btn-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 255, 136, 0.6);
+  background: linear-gradient(135deg, #00ffaa 0%, #00dd88 100%);
 }
 
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .btn-submit:disabled:hover {
   transform: none;
   box-shadow: none;
-}
-
-.btn-submit:disabled::before {
-  display: none;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
 }
 
 /* Responsive Design */

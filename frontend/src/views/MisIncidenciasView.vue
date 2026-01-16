@@ -4,7 +4,7 @@
       <div class="mis-incidencias-content">
         <div class="header">
           <h1>Mis Incidencias</h1>
-          <router-link to="/incidencias/nueva" class="btn-primary">
+          <router-link v-if="authStore.isCiudadano" to="/incidencias/nueva" class="btn-primary">
             + Nueva Incidencia
           </router-link>
         </div>
@@ -35,7 +35,7 @@
         
         <div v-else-if="incidenciasFiltradas.length === 0" class="empty">
           <p>No tienes incidencias reportadas</p>
-          <router-link to="/incidencias/nueva" class="btn-primary">
+          <router-link v-if="authStore.isCiudadano" to="/incidencias/nueva" class="btn-primary">
             Reportar Primera Incidencia
           </router-link>
         </div>
