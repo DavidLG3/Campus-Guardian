@@ -237,11 +237,15 @@ async function handleSubmit() {
     
     // Agregar archivos si existen
     if (selectedFiles.value && selectedFiles.value.length > 0) {
-      selectedFiles.value.forEach((file) => {
+      console.log('📎 Archivos a enviar:', selectedFiles.value.length)
+      selectedFiles.value.forEach((file, index) => {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+        console.log(`  ${index + 1}. ${file.name} (${file.type}) - ${sizeMB}MB`)
         formDataToSend.append('archivos', file)
       })
     }
     
+    console.log('📤 Enviando incidencia...')
     await incidenciaStore.create(formDataToSend)
     
     success.value = 'Incidencia reportada exitosamente. Redirigiendo...'
@@ -260,8 +264,27 @@ async function handleSubmit() {
       router.push('/incidencias')
     }, 1500)
   } catch (err) {
-    console.error('Error al reportar incidencia:', err)
-    error.value = err.response?.data?.message || JSON.stringify(err.response?.data) || 'Error al reportar la incidencia'
+    console.error('❌ Error al reportar incidencia:', err)
+    console.error('📋 Respuesta del servidor:', err.response?.data)
+    console.error('🔢 Status code:', err.response?.status)
+    console.error('📄 Headers:', err.response?.headers)
+    
+    // Intentar extraer mensaje de error útil
+    let errorMsg = 'Error al reportar la incidencia'
+    
+    if (err.response?.data) {
+      if (typeof err.response.data === 'string') {
+        errorMsg = err.response.data.substring(0, 200) // Limitar texto
+      } else if (err.response.data.error) {
+        errorMsg = err.response.data.error
+      } else if (err.response.data.detail) {
+        errorMsg = err.response.data.detail
+      } else {
+        errorMsg = JSON.stringify(err.response.data).substring(0, 200)
+      }
+    }
+    
+    error.value = errorMsg
   } finally {
     isLoading.value = false
   }

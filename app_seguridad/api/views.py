@@ -196,30 +196,46 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
         if 'archivos' in data:
             del data['archivos']
         
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        incidencia = serializer.save(usuario=request.user)
-        
-        # Procesar archivos manualmente
-        for archivo in archivos:
-            # Determinar tipo basado en el content_type
-            content_type = archivo.content_type
-            if content_type.startswith('image/'):
-                tipo = 'imagen'
-            elif content_type.startswith('video/'):
-                tipo = 'video'
-            else:
-                continue  # Ignorar archivos que no sean imágenes o videos
+        try:
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            incidencia = serializer.save(usuario=request.user)
             
-            ArchivoIncidencia.objects.create(
-                incidencia=incidencia,
-                archivo=archivo,
-                tipo=tipo
+            # Procesar archivos manualmente
+            for archivo in archivos:
+                try:
+                    # Determinar tipo basado en el content_type
+                    content_type = archivo.content_type
+                    if content_type.startswith('image/'):
+                        tipo = 'imagen'
+                    elif content_type.startswith('video/'):
+                        tipo = 'video'
+                    else:
+                        continue  # Ignorar archivos que no sean imágenes o videos
+                    
+                    ArchivoIncidencia.objects.create(
+                        incidencia=incidencia,
+                        archivo=archivo,
+                        tipo=tipo
+                    )
+                except Exception as e:
+                    print(f"ERROR al procesar archivo {archivo.name}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    # Continuar con los demás archivos
+            
+            # Usar el serializer completo para la respuesta
+            response_serializer = IncidenciaSerializer(incidencia, context={'request': request})
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"ERROR al crear incidencia: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Error al crear la incidencia: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
-        # Usar el serializer completo para la respuesta
-        response_serializer = IncidenciaSerializer(incidencia, context={'request': request})
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
     def perform_create(self, serializer):
         """Asignar automáticamente el usuario actual al crear incidencia"""

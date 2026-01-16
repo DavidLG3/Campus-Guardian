@@ -118,7 +118,24 @@ const selectFiles = () => {
 
 const handleFileSelect = (event) => {
   const selectedFiles = Array.from(event.target.files)
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB para imágenes
+  const MAX_VIDEO_SIZE = 25 * 1024 * 1024 // 25MB para videos
+  
   selectedFiles.forEach(file => {
+    // Validar tamaño
+    const isImage = file.type.startsWith('image/')
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE
+    const maxSizeMB = isImage ? 10 : 25
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+    
+    console.log(`Archivo seleccionado: ${file.name}, Tipo: ${file.type}, Tamaño: ${fileSizeMB}MB`)
+    
+    if (file.size > maxSize) {
+      alert(`El archivo "${file.name}" es demasiado grande (${fileSizeMB}MB). Tamaño máximo: ${maxSizeMB}MB`)
+      return
+    }
+    
     const preview = URL.createObjectURL(file)
     files.value.push({
       file,

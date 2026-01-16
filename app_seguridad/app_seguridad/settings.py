@@ -216,6 +216,8 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
     'API_KEY': config('CLOUDINARY_API_KEY', default=''),
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'SECURE': True,
+    'RESOURCE_TYPE': 'auto',  # Detecta automáticamente si es imagen o video
 }
 
 # Storage configuration (Django 4.2+)
