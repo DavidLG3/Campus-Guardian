@@ -830,13 +830,13 @@ h2 {
 .nota-textarea {
   width: 100%;
   padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid #d0d0d0;
   border-radius: var(--radius-lg, 12px);
   font-size: 14px;
   font-family: inherit;
   font-weight: 500;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  color: #000;
+  background: #f8f8f8;
   resize: vertical;
   margin-bottom: 1rem;
   transition: all var(--transition-base, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
@@ -845,7 +845,7 @@ h2 {
 .nota-textarea:focus {
   outline: none;
   border-color: var(--success, #00ff88);
-  background: rgba(255, 255, 255, 0.08);
+  background: #fff;
   box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
 }
 

@@ -418,9 +418,9 @@ textarea {
 .btn-secondary {
   width: 100%;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: #f0f0f0;
+  color: #000;
+  border: 2px solid #d0d0d0;
   border-radius: var(--radius-lg, 12px);
   font-weight: 800;
   font-size: 14px;
@@ -432,10 +432,10 @@ textarea {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #00ff88;
+  border-color: #00ff88;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
 }
 
 .btn-secondary:disabled {
