@@ -218,20 +218,41 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     
                     if content_type.startswith('image/'):
                         tipo = 'imagen'
+                        resource_type = 'image'
                     elif content_type.startswith('video/'):
                         tipo = 'video'
+                        resource_type = 'video'
                     else:
                         print(f"⚠️  Tipo de archivo no soportado: {content_type}")
                         continue  # Ignorar archivos que no sean imágenes o videos
                     
-                    print(f"💾 Guardando como: {tipo}")
-                    archivo_obj = ArchivoIncidencia.objects.create(
+                    print(f"💾 Guardando como: {tipo} (resource_type={resource_type})")
+                    
+                    # Subir directamente a Cloudinary con el resource_type correcto
+                    import cloudinary.uploader
+                    from django.core.files.uploadedfile import InMemoryUploadedFile
+                    
+                    upload_result = cloudinary.uploader.upload(
+                        archivo,
+                        resource_type=resource_type,
+                        folder='incidencias'
+                    )
+                    
+                    cloudinary_url = upload_result.get('secure_url')
+                    print(f"✅ Cloudinary upload exitoso: {cloudinary_url}")
+                    
+                    # Crear el objeto ArchivoIncidencia sin guardar aún
+                    archivo_obj = ArchivoIncidencia(
                         incidencia=incidencia,
-                        archivo=archivo,
                         tipo=tipo
                     )
+                    
+                    # Asignar el nombre del archivo manualmente
+                    # Cloudinary devuelve public_id que podemos usar
+                    archivo_obj.archivo.name = f"incidencias/{upload_result.get('public_id')}"
+                    archivo_obj.save()
+                    
                     print(f"✅ Archivo guardado con ID: {archivo_obj.id}")
-                    print(f"   URL: {archivo_obj.archivo.url if archivo_obj.archivo else 'NO URL'}")
                     archivos_guardados += 1
                     
                 except Exception as e:
