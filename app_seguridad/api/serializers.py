@@ -99,13 +99,8 @@ class ArchivoIncidenciaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'fecha_subida']
     
     def get_archivo_url(self, obj):
-        """Obtener URL completa del archivo"""
-        if obj.archivo:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.archivo.url)
-            return obj.archivo.url
-        return None
+        """Obtener URL completa del archivo desde Cloudinary"""
+        return obj.get_cloudinary_url()
 
 
 class ComentarioSerializer(serializers.ModelSerializer):

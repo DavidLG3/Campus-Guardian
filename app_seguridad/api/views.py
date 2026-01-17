@@ -239,20 +239,19 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     )
                     
                     cloudinary_url = upload_result.get('secure_url')
+                    public_id = upload_result.get('public_id')
                     print(f"✅ Cloudinary upload exitoso: {cloudinary_url}")
+                    print(f"   Public ID: {public_id}")
                     
-                    # Crear el objeto ArchivoIncidencia sin guardar aún
-                    archivo_obj = ArchivoIncidencia(
+                    # Crear el objeto ArchivoIncidencia con el public_id de Cloudinary
+                    archivo_obj = ArchivoIncidencia.objects.create(
                         incidencia=incidencia,
-                        tipo=tipo
+                        tipo=tipo,
+                        cloudinary_public_id=public_id
                     )
                     
-                    # Asignar el nombre del archivo manualmente
-                    # Cloudinary devuelve public_id que podemos usar
-                    archivo_obj.archivo.name = f"incidencias/{upload_result.get('public_id')}"
-                    archivo_obj.save()
-                    
                     print(f"✅ Archivo guardado con ID: {archivo_obj.id}")
+                    print(f"   URL generada: {archivo_obj.get_cloudinary_url()}")
                     archivos_guardados += 1
                     
                 except Exception as e:

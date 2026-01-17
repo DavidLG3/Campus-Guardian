@@ -27,6 +27,14 @@ class ArchivoIncidencia(models.Model):
         help_text="Tipo de archivo: imagen o video"
     )
     
+    # Public ID de Cloudinary para construir URLs
+    cloudinary_public_id = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Public ID del archivo en Cloudinary"
+    )
+    
     fecha_subida = models.DateTimeField(auto_now_add=True)
     
     # Metadatos opcionales
@@ -44,3 +52,16 @@ class ArchivoIncidencia(models.Model):
     
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.incidencia.codigo_unico}"
+    
+    def get_cloudinary_url(self):
+        """Obtener URL completa de Cloudinary"""
+        if self.cloudinary_public_id:
+            import cloudinary
+            resource_type = 'video' if self.tipo == 'video' else 'image'
+            return cloudinary.CloudinaryImage(self.cloudinary_public_id).build_url(
+                resource_type=resource_type,
+                secure=True
+            )
+        elif self.archivo:
+            return self.archivo.url
+        return None
