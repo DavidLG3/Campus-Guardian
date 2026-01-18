@@ -11,8 +11,11 @@
               <select id="tipo" v-model="formData.tipo" required>
                 <option value="">Selecciona un tipo</option>
                 <option value="robo">Robo</option>
-                <option value="vandalismo">Vandalismo</option>
                 <option value="accidente">Accidente</option>
+                <option value="incendio">Incendio</option>
+                <option value="vandalismo">Vandalismo</option>
+                <option value="situacion_incomoda">Situación Incómoda</option>
+                <option value="estafa">Estafa</option>
                 <option value="otro">Otro</option>
               </select>
             </div>

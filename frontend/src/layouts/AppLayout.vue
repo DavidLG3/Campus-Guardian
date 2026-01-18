@@ -152,6 +152,9 @@
     <main class="main-content">
       <slot />
     </main>
+    
+    <!-- Chatbot Guardian -->
+    <ChatbotGuardian />
   </div>
 </template>
 
@@ -161,6 +164,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAlertaStore } from '@/stores/alerta'
 import { useNotificacionStore } from '@/stores/notificacion'
+import ChatbotGuardian from '@/components/ChatbotGuardian.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
