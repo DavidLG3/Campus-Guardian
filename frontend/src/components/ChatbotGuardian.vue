@@ -369,6 +369,8 @@ onMounted(() => {
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  padding: 0;
+  line-height: 1;
 }
 
 .chat-button:hover {
@@ -379,6 +381,10 @@ onMounted(() => {
 .chat-icon {
   font-size: 28px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .notification-dot {
@@ -471,6 +477,11 @@ onMounted(() => {
   font-size: 20px;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
 }
 
 .close-button:hover {
