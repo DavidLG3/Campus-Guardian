@@ -24,14 +24,20 @@ export const useAlertaStore = defineStore('alerta', () => {
   })
 
   async function fetchAll(params = {}) {
-    isLoading.value = true
-    error.value = null
+    // Solo mostrar loading en la primera carga (cuando no hay alertas)
+    const primeraVez = alertas.value.length === 0
+    if (primeraVez) {
+      isLoading.value = true
+      error.value = null
+    }
     
     try {
       const response = await alertaService.getAll(params)
       
       if (!response || !response.data) {
-        alertas.value = []
+        if (primeraVez) {
+          alertas.value = []
+        }
         return []
       }
       
@@ -51,20 +57,30 @@ export const useAlertaStore = defineStore('alerta', () => {
         })
       
       if (hayNuevasAlertas) {
-        console.log('[ALERTA STORE] ✅ Hay cambios, actualizando alertas')
         alertas.value = data
-      } else {
-        console.log('[ALERTA STORE] ℹ️ Sin cambios, manteniendo estado actual')
+      }
+      
+      // Limpiar error solo si había uno previo
+      if (error.value && primeraVez) {
+        error.value = null
       }
       
       return data
     } catch (err) {
-      error.value = err.response?.data?.message || 'Error al cargar alertas'
+      // Solo actualizar error si cambió
+      const nuevoError = err.response?.data?.message || 'Error al cargar alertas'
+      if (error.value !== nuevoError) {
+        error.value = nuevoError
+      }
       console.error('Error al cargar alertas:', err)
-      alertas.value = []
+      if (primeraVez) {
+        alertas.value = []
+      }
       return []
     } finally {
-      isLoading.value = false
+      if (primeraVez) {
+        isLoading.value = false
+      }
     }
   }
 

@@ -197,15 +197,21 @@ const startPolling = () => {
   // Consultar cada 3 segundos para actualizaciones casi en tiempo real
   pollingInterval = setInterval(() => {
     if (authStore.isAuthenticated) {
+      // Solo hacer polling de alertas si NO estamos en la vista de alertas
       if (authStore.isAdmin || authStore.isOperador) {
-        alertaStore.fetchAll().catch(err => {
-          console.error('Error en polling de alertas:', err)
-        })
+        if (router.currentRoute.value.path !== '/alertas') {
+          alertaStore.fetchAll().catch(err => {
+            console.error('Error en polling de alertas:', err)
+          })
+        }
       }
+      // Solo hacer polling de notificaciones si NO estamos en la vista de notificaciones
       if (authStore.isCiudadano) {
-        notificacionStore.fetchAll().catch(err => {
-          console.error('Error en polling de notificaciones:', err)
-        })
+        if (router.currentRoute.value.path !== '/notificaciones') {
+          notificacionStore.fetchAll().catch(err => {
+            console.error('Error en polling de notificaciones:', err)
+          })
+        }
       }
     }
   }, 3000) // 3 segundos

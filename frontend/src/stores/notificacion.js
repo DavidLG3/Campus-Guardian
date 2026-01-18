@@ -20,13 +20,15 @@ export const useNotificacionStore = defineStore('notificacion', () => {
   })
 
   async function fetchAll() {
-    isLoading.value = true
-    error.value = null
+    // Solo mostrar loading en la primera carga (cuando no hay notificaciones)
+    const primeraVez = notificaciones.value.length === 0
+    if (primeraVez) {
+      isLoading.value = true
+      error.value = null
+    }
     
     try {
       const response = await notificacionService.getAll()
-      console.log('[STORE] Respuesta del API:', response)
-      console.log('[STORE] Datos recibidos:', response.data)
       
       // El API devuelve una respuesta paginada con {count, results}
       const data = response.data.results || response.data || []
@@ -42,22 +44,30 @@ export const useNotificacionStore = defineStore('notificacion', () => {
         })
       
       if (hayNuevasNotificaciones) {
-        console.log('[STORE] ✅ Hay cambios, actualizando notificaciones')
         notificaciones.value = nuevasNotificaciones
-      } else {
-        console.log('[STORE] ℹ️ Sin cambios, manteniendo estado actual')
       }
       
-      console.log('[STORE] Notificaciones en store:', notificaciones.value)
-      console.log('[STORE] Cantidad de notificaciones:', notificaciones.value.length)
+      // Limpiar error solo si había uno previo
+      if (error.value && primeraVez) {
+        error.value = null
+      }
+      
       return notificaciones.value
     } catch (err) {
-      error.value = err.response?.data?.message || 'Error al cargar notificaciones'
+      // Solo actualizar error si cambió
+      const nuevoError = err.response?.data?.message || 'Error al cargar notificaciones'
+      if (error.value !== nuevoError) {
+        error.value = nuevoError
+      }
       console.error('Error al cargar notificaciones:', err)
-      notificaciones.value = []
+      if (primeraVez) {
+        notificaciones.value = []
+      }
       return []
     } finally {
-      isLoading.value = false
+      if (primeraVez) {
+        isLoading.value = false
+      }
     }
   }
 

@@ -11,6 +11,13 @@
               <select id="tipo" v-model="formData.tipo" required>
                 <option value="">Selecciona un tipo</option>
                 <option value="robo">Robo</option>
+<<<<<<< HEAD
+=======
+                <option value="vandalismo">Vandalismo</option>
+                <option value="incendio">Incendio</option>
+                <option value="situacion_incomoda">Situación Incómoda</option>
+                <option value="estafa">Estafa</option>
+>>>>>>> Optimizar polling de notificaciones/alertas y agregar tipos de incidencia faltantes
                 <option value="accidente">Accidente</option>
                 <option value="incendio">Incendio</option>
                 <option value="vandalismo">Vandalismo</option>

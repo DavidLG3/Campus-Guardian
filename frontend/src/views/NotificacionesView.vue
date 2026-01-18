@@ -8,11 +8,11 @@
         
         <div v-else-if="error" class="error">{{ error }}</div>
         
-        <div v-else-if="notificaciones.length === 0" class="empty">
+        <div v-show="!isLoading && !error && notificaciones.length === 0" class="empty">
           <p>No tienes notificaciones</p>
         </div>
         
-        <div v-else class="notificaciones-list">
+        <div v-show="!isLoading && !error && notificaciones.length > 0" class="notificaciones-list">
           <div 
             v-for="notificacion in notificaciones" 
             :key="notificacion.id"
@@ -50,19 +50,8 @@ import AppLayout from '@/layouts/AppLayout.vue'
 
 const notificacionStore = useNotificacionStore()
 
-const notificaciones = computed(() => {
-  // Filtrar elementos null o inválidos
-  const notifs = notificacionStore.notificaciones
-  console.log('[VIEW] Notificaciones del store:', notifs)
-  if (!Array.isArray(notifs)) {
-    console.log('[VIEW] No es un array, retornando vacío')
-    return []
-  }
-  const filtered = notifs.filter(n => n && n.id)
-  console.log('[VIEW] Notificaciones filtradas:', filtered)
-  return filtered
-})
-
+// Usar directamente las refs del store para evitar crear nuevos arrays
+const notificaciones = computed(() => notificacionStore.notificaciones)
 const isLoading = computed(() => notificacionStore.isLoading)
 const error = computed(() => notificacionStore.error)
 
@@ -129,14 +118,22 @@ h1 {
 }
 
 .loading,
-.error,
-.empty {
+.error {
   text-align: center;
   padding: 4rem;
   color: var(--text-secondary, #a0a0a0);
   font-size: 18px;
   font-weight: 600;
   animation: fadeIn 0.4s ease;
+}
+
+.empty {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 18px;
+  font-weight: 600;
+  /* Sin animación para evitar parpadeo en polling */
 }
 
 .error {
