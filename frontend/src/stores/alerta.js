@@ -43,7 +43,20 @@ export const useAlertaStore = defineStore('alerta', () => {
         data = response.data
       }
       
-      alertas.value = data
+      // Solo actualizar si hay cambios (nuevas alertas o cambios en leída)
+      const hayNuevasAlertas = data.length !== alertas.value.length ||
+        data.some(nueva => {
+          const existente = alertas.value.find(a => a.id === nueva.id)
+          return !existente || existente.leida !== nueva.leida || existente.activa !== nueva.activa
+        })
+      
+      if (hayNuevasAlertas) {
+        console.log('[ALERTA STORE] ✅ Hay cambios, actualizando alertas')
+        alertas.value = data
+      } else {
+        console.log('[ALERTA STORE] ℹ️ Sin cambios, manteniendo estado actual')
+      }
+      
       return data
     } catch (err) {
       error.value = err.response?.data?.message || 'Error al cargar alertas'

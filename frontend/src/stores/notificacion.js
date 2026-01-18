@@ -32,8 +32,23 @@ export const useNotificacionStore = defineStore('notificacion', () => {
       const data = response.data.results || response.data || []
       
       // Filtrar elementos null o inválidos
-      notificaciones.value = Array.isArray(data) ? data.filter(n => n && n.id) : []
-      console.log('[STORE] Notificaciones guardadas en store:', notificaciones.value)
+      const nuevasNotificaciones = Array.isArray(data) ? data.filter(n => n && n.id) : []
+      
+      // Solo actualizar si hay cambios (nuevas notificaciones o cambios en leída)
+      const hayNuevasNotificaciones = nuevasNotificaciones.length !== notificaciones.value.length ||
+        nuevasNotificaciones.some(nueva => {
+          const existente = notificaciones.value.find(n => n.id === nueva.id)
+          return !existente || existente.leida !== nueva.leida
+        })
+      
+      if (hayNuevasNotificaciones) {
+        console.log('[STORE] ✅ Hay cambios, actualizando notificaciones')
+        notificaciones.value = nuevasNotificaciones
+      } else {
+        console.log('[STORE] ℹ️ Sin cambios, manteniendo estado actual')
+      }
+      
+      console.log('[STORE] Notificaciones en store:', notificaciones.value)
       console.log('[STORE] Cantidad de notificaciones:', notificaciones.value.length)
       return notificaciones.value
     } catch (err) {
