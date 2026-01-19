@@ -315,6 +315,26 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     {"detail": f"Esta incidencia ya está siendo atendida por {incidencia.asignado_a.nombre}"},
                     status=status.HTTP_403_FORBIDDEN
                 )
+            
+            # Verificar que el usuario no tenga otra incidencia en progreso
+            incidencias_en_progreso = Incidencia.objects.filter(
+                asignado_a=request.user,
+                estado='en_proceso'
+            ).exclude(id=incidencia.id)
+            
+            if incidencias_en_progreso.exists():
+                incidencia_actual = incidencias_en_progreso.first()
+                return Response(
+                    {
+                        "detail": f"Ya tienes una incidencia en progreso ({incidencia_actual.codigo_unico}). Finalízala antes de tomar otra.",
+                        "incidencia_actual": {
+                            "id": incidencia_actual.id,
+                            "codigo_unico": incidencia_actual.codigo_unico
+                        }
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             # Asignar al usuario actual
             incidencia.asignado_a = request.user
         elif estado_backend == 'pendiente':

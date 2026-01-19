@@ -42,7 +42,7 @@
             type="email"
             required
             placeholder="tu@email.com"
-            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+            pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
             title="Introduce un email válido (ejemplo@dominio.com)"
           />
         </div>

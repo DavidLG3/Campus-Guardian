@@ -225,7 +225,7 @@
                     <span class="comentario-autor">
                       {{ comentario.usuario_info.nombre }}
                     </span>
-                    <span class="comentario-badge" :class="comentario.usuario_info.tipo">
+                    <span class="comentario-badge" v-if="comentario.usuario_info.tipo !== 'normal'" :class="comentario.usuario_info.tipo">
                       {{ formatTipoUsuario(comentario.usuario_info.tipo) }}
                     </span>
                     <span class="comentario-fecha">
@@ -424,8 +424,6 @@ function initMap() {
     
     L.marker([incidencia.value.latitud, incidencia.value.longitud], { icon })
       .addTo(map)
-      .bindPopup(incidencia.value.tipo)
-      .openPopup()
   }
 }
 
@@ -799,7 +797,7 @@ h2 {
   background: var(--info, #00ccff);
 }
 
-.btn-resuelta::before {
+.btn-resolver::before {
   background: var(--success, #00ff88);
 }
 

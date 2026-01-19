@@ -1,168 +1,262 @@
 <template>
-  <div class="dashboard-view">
-    <AppLayout>
-      <div class="dashboard-content">
+  <AppLayout>
+    <div class="dashboard-content">
+      <!-- Dashboard para Ciudadanos -->
+      <div v-if="authStore.isCiudadano" class="ciudadano-dashboard">
         <h1>Dashboard</h1>
         
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-info">
-              <h3>{{ stats.incidencias }}</h3>
-              <p>Incidencias Totales</p>
-            </div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-info">
-              <h3>{{ stats.incidenciasAbiertas }}</h3>
-              <p>Incidencias Abiertas</p>
-            </div>
-          </div>
-          
-          <!-- Alertas: solo visible para admin y operador -->
-          <div v-if="authStore.isAdmin || authStore.isOperador" class="stat-card">
-            <div class="stat-icon">🔔</div>
-            <div class="stat-info">
-              <h3>{{ stats.alertasActivas }}</h3>
-              <p>Alertas Activas</p>
-            </div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info">
-              <h3>{{ stats.incidenciasResueltas }}</h3>
-              <p>Incidencias Resueltas</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-sections">
-          <div class="section">
-            <h2>Incidencias Recientes</h2>
-            <div v-if="isLoading" class="loading">Cargando...</div>
-            <div v-else-if="incidenciasRecientes.length === 0" class="empty">
-              No hay incidencias recientes
-            </div>
-            <div v-else class="incidencias-grid">
-              <div 
-                v-for="incidencia in incidenciasRecientes" 
-                :key="incidencia.id"
-                class="incidencia-card"
-                @click="$router.push(`/incidencias/${incidencia.id}`)"
-              >
-                <div class="card-header">
-                  <span class="codigo-badge">{{ incidencia.codigo_unico }}</span>
-                  <span :class="['estado-badge', incidencia.estado]">{{ formatEstado(incidencia.estado) }}</span>
-                </div>
-                <div class="card-body">
-                  <div class="tipo-incidencia">{{ formatTipo(incidencia.tipo) }}</div>
-                  <p class="descripcion">{{ truncateText(incidencia.descripcion, 60) }}</p>
-                </div>
-                <div class="card-footer">
-                  <span class="fecha">📅 {{ formatDate(incidencia.fecha_creacion) }}</span>
-                  <span class="ubicacion" v-if="incidencia.ubicacion">📍 {{ incidencia.ubicacion }}</span>
-                </div>
-              </div>
-            </div>
-            <router-link to="/incidencias" class="view-all">Ver todas →</router-link>
-          </div>
-          
-          <!-- Alertas Activas: solo visible para admin y operador -->
-          <div v-if="authStore.isAdmin || authStore.isOperador" class="section">
-            <h2>Alertas Activas</h2>
-            <div v-if="isLoading" class="loading">Cargando...</div>
-            <div v-else-if="alertasActivas.length === 0" class="empty">
-              No hay alertas activas
-            </div>
-            <ul v-else class="alertas-list">
-              <li v-for="alerta in alertasActivas" :key="alerta.id">
-                <div :class="['alerta-item', alerta.nivel]">
-                  <strong>{{ alerta.tipo }}</strong>
-                  <p>{{ alerta.mensaje }}</p>
-                  <span class="fecha">{{ formatDate(alerta.fecha_creacion) }}</span>
-                </div>
-              </li>
-            </ul>
-            <router-link to="/alertas" class="view-all">Ver todas →</router-link>
-          </div>
-        </div>
-        
-        <div class="quick-actions">
+        <!-- Acciones Rápidas -->
+        <section class="acciones-rapidas">
           <h2>Acciones Rápidas</h2>
           <div class="actions-grid">
-            <router-link v-if="authStore.isCiudadano" to="/incidencias/nueva" class="action-btn">
-              ➕ Nueva Incidencia
+            <router-link to="/incidencias/nueva" class="action-card">
+              <div class="action-icon">➕</div>
+              <span>Nueva Incidencia</span>
             </router-link>
-            <router-link to="/mapa" class="action-btn">
-              🗺️ Ver Mapa
+            
+            <router-link to="/mapa" class="action-card">
+              <div class="action-icon">🗺️</div>
+              <span>Ver Mapa</span>
             </router-link>
-            <router-link v-if="authStore.isCiudadano" to="/mis-incidencias" class="action-btn">
-              📋 Mis Incidencias
+            
+            <router-link to="/mis-incidencias" class="action-card">
+              <div class="action-icon">📋</div>
+              <span>Mis Incidencias</span>
             </router-link>
-            <router-link v-if="authStore.isAdmin || authStore.isOperador" to="/alertas" class="action-btn">
-              🔔 Ver Notificaciones
+            
+            <router-link to="/notificaciones" class="action-card">
+              <div class="action-icon">🔔</div>
+              <span>Notificaciones</span>
             </router-link>
           </div>
-        </div>
+        </section>
+
+        <!-- Incidencias Activas Recientes -->
+        <section class="incidencias-section">
+          <h2>Incidencias Activas Recientes</h2>
+          <div v-if="isLoading" class="loading">Cargando...</div>
+          <div v-else-if="incidenciasActivas.length === 0" class="empty">
+            No hay incidencias activas
+          </div>
+          <div v-else class="incidencias-list">
+            <div 
+              v-for="incidencia in incidenciasActivas" 
+              :key="incidencia.id"
+              class="incidencia-card"
+              @click="$router.push(`/incidencias/${incidencia.id}`)"
+            >
+              <div class="card-header">
+                <span class="codigo-badge">{{ incidencia.codigo_unico }}</span>
+                <span :class="['estado-badge', incidencia.estado]">
+                  {{ formatEstado(incidencia.estado) }}
+                </span>
+              </div>
+              <div class="card-body">
+                <div class="tipo-incidencia">{{ formatTipo(incidencia.tipo) }}</div>
+                <p class="descripcion">{{ truncateText(incidencia.descripcion, 80) }}</p>
+              </div>
+              <div class="card-footer">
+                <span class="fecha">📅 {{ formatDate(incidencia.fecha_creacion) }}</span>
+                <span class="ubicacion" v-if="incidencia.ubicacion">📍 {{ incidencia.ubicacion }}</span>
+              </div>
+              <div v-if="incidencia.comentarios_count > 0" class="comentarios-preview">
+                💬 {{ incidencia.comentarios_count }} {{ incidencia.comentarios_count === 1 ? 'comentario' : 'comentarios' }}
+              </div>
+              <div class="card-action">
+                <span class="ver-detalles">Ver Detalles →</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Consejos de Seguridad -->
+        <section class="consejos-seguridad">
+          <h2>💡 Consejos de Seguridad</h2>
+          <div class="consejos-list">
+            <div class="consejo-card">
+              <div class="consejo-icon">🚨</div>
+              <p>Ante una emergencia, llama al 112 antes de reportar la incidencia</p>
+            </div>
+            <div class="consejo-card">
+              <div class="consejo-icon">📸</div>
+              <p>Toma fotos de la escena para facilitar la resolución</p>
+            </div>
+            <div class="consejo-card">
+              <div class="consejo-icon">📍</div>
+              <p>Reporta con la ubicación exacta para respuesta más rápida</p>
+            </div>
+            <div class="consejo-card">
+              <div class="consejo-icon">🔔</div>
+              <p>Activa las notificaciones para seguir el estado de tus reportes</p>
+            </div>
+          </div>
+        </section>
       </div>
-    </AppLayout>
-  </div>
+
+      <!-- Dashboard para Seguridad -->
+      <div v-else class="seguridad-dashboard">
+        <h1>Dashboard</h1>
+        
+        <!-- Mi Incidencia Asignada -->
+        <section v-if="miIncidenciaAsignada" class="mi-incidencia">
+          <h2>Mi Incidencia Asignada</h2>
+          <div class="incidencia-asignada" @click="$router.push(`/incidencias/${miIncidenciaAsignada.id}`)">
+            <div class="card-header">
+              <span class="codigo-badge">{{ miIncidenciaAsignada.codigo_unico }}</span>
+              <span :class="['estado-badge', miIncidenciaAsignada.estado]">
+                {{ formatEstado(miIncidenciaAsignada.estado) }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="tipo-incidencia">{{ miIncidenciaAsignada.tipo }}</div>
+              <p class="descripcion">{{ miIncidenciaAsignada.descripcion }}</p>
+            </div>
+            <div class="card-footer">
+              <span class="fecha">📅 {{ formatDate(miIncidenciaAsignada.fecha_creacion) }}</span>
+              <span class="ubicacion" v-if="miIncidenciaAsignada.ubicacion">📍 {{ miIncidenciaAsignada.ubicacion }}</span>
+            </div>
+            <div v-if="miIncidenciaAsignada.comentarios_count > 0" class="comentarios-preview">
+              💬 {{ miIncidenciaAsignada.comentarios_count }} {{ miIncidenciaAsignada.comentarios_count === 1 ? 'comentario' : 'comentarios' }}
+            </div>
+            <div class="card-action">
+              <button class="btn-gestionar">Gestionar Incidencia</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Incidencias Sin Asignar -->
+        <section class="incidencias-libres-section">
+          <h2>Incidencias Sin Asignar</h2>
+          <div v-if="isLoading" class="loading">Cargando...</div>
+          <div v-else-if="incidenciasLibres.length === 0" class="empty">
+            No hay incidencias sin asignar
+          </div>
+          <div v-else class="incidencias-list">
+            <div 
+              v-for="incidencia in incidenciasLibres" 
+              :key="incidencia.id"
+              class="incidencia-card libre"
+              @click="$router.push(`/incidencias/${incidencia.id}`)"
+            >
+              <div class="card-header">
+                <span class="codigo-badge">{{ incidencia.codigo_unico }}</span>
+                <span class="tiempo-espera">⏱️ {{ tiempoEspera(incidencia.fecha_creacion) }}</span>
+              </div>
+              <div class="card-body">
+                <div class="tipo-incidencia">{{ incidencia.tipo }}</div>
+                <p class="descripcion">{{ truncateText(incidencia.descripcion, 80) }}</p>
+              </div>
+              <div class="card-footer">
+                <span class="fecha">📅 {{ formatDate(incidencia.fecha_creacion) }}</span>
+                <span class="ubicacion" v-if="incidencia.ubicacion">📍 {{ incidencia.ubicacion }}</span>
+              </div>
+              <div v-if="incidencia.comentarios_count > 0" class="comentarios-preview">
+                💬 {{ incidencia.comentarios_count }} {{ incidencia.comentarios_count === 1 ? 'comentario' : 'comentarios' }}
+              </div>
+              <div class="card-action">
+                <span class="ver-detalles">Tomar Incidencia →</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Estadísticas -->
+        <section class="estadisticas">
+          <h2>Estadísticas</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📊</div>
+              <div class="stat-info">
+                <h3>{{ estadisticas.total }}</h3>
+                <p>Total</p>
+              </div>
+            </div>
+            
+            <div class="stat-card pendientes">
+              <div class="stat-icon">⚠️</div>
+              <div class="stat-info">
+                <h3>{{ estadisticas.pendientes }}</h3>
+                <p>Pendientes</p>
+              </div>
+            </div>
+            
+            <div class="stat-card proceso">
+              <div class="stat-icon">⚙️</div>
+              <div class="stat-info">
+                <h3>{{ estadisticas.enProceso }}</h3>
+                <p>En Proceso</p>
+              </div>
+            </div>
+            
+            <div class="stat-card resueltas">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <h3>{{ estadisticas.resueltas }}</h3>
+                <p>Resueltas</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIncidenciaStore } from '@/stores/incidencia'
-import { useAlertaStore } from '@/stores/alerta'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const authStore = useAuthStore()
 const incidenciaStore = useIncidenciaStore()
-const alertaStore = useAlertaStore()
 
 const isLoading = ref(false)
 
-const stats = computed(() => {
+// Para ciudadanos: incidencias activas (todas excepto resueltas) ordenadas por más recientes
+const incidenciasActivas = computed(() => {
   const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
-  const alertasActivasArray = Array.isArray(alertaStore.alertasActivas) ? alertaStore.alertasActivas : []
-  
+  return incidencias
+    .filter(i => i.estado !== 'resuelta')
+    .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
+    .slice(0, 10) // Mostrar las 10 más recientes
+})
+
+// Para seguridad: mi incidencia asignada
+const miIncidenciaAsignada = computed(() => {
+  if (!authStore.user?.id) return null
+  const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
+  return incidencias.find(i => 
+    i.asignado_a === authStore.user.id && 
+    i.estado !== 'resuelta'
+  )
+})
+
+// Para seguridad: incidencias sin asignar, ordenadas por más antiguas primero
+const incidenciasLibres = computed(() => {
+  const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
+  return incidencias
+    .filter(i => !i.asignado_a && i.estado !== 'resuelta')
+    .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion)) // Más antiguas primero
+    .slice(0, 20) // Mostrar las 20 más antiguas
+})
+
+// Estadísticas para operadores
+const estadisticas = computed(() => {
+  const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
   return {
-    incidencias: incidencias.length,
-    incidenciasAbiertas: incidencias.filter(i => i.estado === 'abierta').length,
-    incidenciasResueltas: incidencias.filter(i => i.estado === 'resuelta').length,
-    alertasActivas: alertasActivasArray.length
+    total: incidencias.length,
+    pendientes: incidencias.filter(i => i.estado === 'abierta').length,
+    enProceso: incidencias.filter(i => i.estado === 'en_progreso').length,
+    resueltas: incidencias.filter(i => i.estado === 'resuelta').length
   }
 })
 
-const incidenciasRecientes = computed(() => {
-  const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
-  return incidencias.slice(0, 5)
-})
-
-const alertasActivas = computed(() => {
-  const alertas = Array.isArray(alertaStore.alertasActivas) ? alertaStore.alertasActivas : []
-  return alertas.slice(0, 5)
-})
-
-function formatDate(dateString) {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', { 
-    day: 'numeric', 
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
 function formatEstado(estado) {
   const estados = {
-    'abierta': 'Abierta',
-    'en_progreso': 'En Progreso',
-    'resuelta': 'Resuelta',
-    'pendiente': 'Pendiente'
+    'abierta': 'Pendiente',
+    'en_progreso': 'En Proceso',
+    'resuelta': 'Resuelta'
   }
   return estados[estado] || estado
 }
@@ -172,9 +266,48 @@ function formatTipo(tipo) {
     'robo': 'Robo',
     'vandalismo': 'Vandalismo',
     'accidente': 'Accidente',
-    'otros': 'Otros'
+    'incendio': 'Incendio',
+    'situacion_incomoda': 'Situación Incómoda',
+    'estafa': 'Estafa',
+    'otro': 'Otro'
   }
   return tipos[tipo] || tipo
+}
+
+function formatDate(dateString) {
+  if (!dateString) return ''
+  
+  const fecha = new Date(dateString)
+  const ahora = new Date()
+  const diffMs = ahora - fecha
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHoras = Math.floor(diffMs / 3600000)
+  const diffDias = Math.floor(diffMs / 86400000)
+  
+  if (diffMins < 1) return 'Ahora mismo'
+  if (diffMins < 60) return `Hace ${diffMins}m`
+  if (diffHoras < 24) return `Hace ${diffHoras}h`
+  if (diffDias < 7) return `Hace ${diffDias}d`
+  
+  return fecha.toLocaleDateString('es-ES', { 
+    day: 'numeric', 
+    month: 'short'
+  })
+}
+
+function tiempoEspera(dateString) {
+  if (!dateString) return ''
+  
+  const fecha = new Date(dateString)
+  const ahora = new Date()
+  const diffMs = ahora - fecha
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHoras = Math.floor(diffMs / 3600000)
+  const diffDias = Math.floor(diffMs / 86400000)
+  
+  if (diffMins < 60) return `${diffMins}m esperando`
+  if (diffHoras < 24) return `${diffHoras}h esperando`
+  return `${diffDias}d esperando`
 }
 
 function truncateText(text, maxLength) {
@@ -185,18 +318,9 @@ function truncateText(text, maxLength) {
 onMounted(async () => {
   isLoading.value = true
   try {
-    await Promise.all([
-      incidenciaStore.fetchAll().catch(err => {
-        console.error('Error cargando incidencias:', err)
-        return []
-      }),
-      alertaStore.fetchAll().catch(err => {
-        console.error('Error cargando alertas:', err)
-        return []
-      })
-    ])
+    await incidenciaStore.fetchAll()
   } catch (error) {
-    console.error('Error cargando datos del dashboard:', error)
+    console.error('Error cargando incidencias:', error)
   } finally {
     isLoading.value = false
   }
@@ -204,234 +328,108 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+:root {
+  --success: #00ff88;
+  --warning: #ffcc00;
+  --info: #00ccff;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --transition-base: all 0.3s ease;
 }
 
 .dashboard-content {
-  padding: 40px 20px;
-  max-width: 1000px;
+  padding: 1rem 1rem 2rem;
+  max-width: 600px;
   margin: 0 auto;
-  animation: fadeIn 0.6s ease;
   background: #000;
   min-height: 100vh;
 }
 
 h1 {
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 900;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   color: #fff;
   letter-spacing: -0.03em;
-  animation: slideUp 0.5s ease;
 }
 
 h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 16px;
   color: #fff;
   letter-spacing: -0.02em;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 40px;
-  width: 100%;
-  max-width: 100%;
-}
-
-.stat-card {
-  background: #fff;
-  border: 2px solid var(--success, #00ff88);
-  padding: 24px;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-width: 0;
-  overflow: hidden;
-  transition: all var(--transition-base);
-  position: relative;
-  animation: scaleIn 0.5s ease backwards;
-  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 255, 136, 0.05);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  pointer-events: none;
-}
-
-.stat-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
-  border-color: var(--success, #00ff88);
-}
-
-.stat-card:hover::before {
-  opacity: 1;
-}
-
-.stat-icon {
-  font-size: 32px;
-  flex-shrink: 0;
-  animation: float 3s ease-in-out infinite;
-}
-
-.stat-info {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.stat-info h3 {
-  font-size: 32px;
-  font-weight: 900;
-  margin: 0;
-  color: #000;
-  letter-spacing: -0.02em;
-}
-
-.stat-info p {
-  margin: 0;
-  color: #666;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dashboard-sections {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
+section {
   margin-bottom: 32px;
-  width: 100%;
-  max-width: 100%;
 }
 
-.section {
-  background: #fff;
-  border: 2px solid var(--success, #00ff88);
-  padding: 28px;
-  border-radius: var(--radius-xl);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  transition: all var(--transition-base);
-  animation: slideUp 0.6s ease backwards;
-  animation-delay: 0.3s;
-  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
-}
-
-.section:hover {
-  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
-  border-color: var(--success, #00ff88);
-  transform: translateY(-2px);
-}
-
-.loading, .empty {
-  text-align: center;
-  padding: 48px 20px;
-  color: var(--text-secondary, #a0a0a0);
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.incidencias-grid {
+/* Acciones Rápidas */
+.actions-grid {
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
-  width: 100%;
-  max-width: 100%;
+}
+
+.action-card {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc70 100%);
+  border: none;
+  padding: 16px 12px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  transition: var(--transition-base);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.action-card:active {
+  transform: scale(0.95);
+}
+
+.action-icon {
+  font-size: 24px;
+}
+
+/* Incidencias */
+.incidencias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .incidencia-card {
-  background: #f9f9f9;
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border: 2px solid #e0e0e0;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-}
-
-.incidencia-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 255, 136, 0.03);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  pointer-events: none;
-}
-
-.incidencia-card:hover {
-  transform: translateX(8px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: var(--success, #00ff88);
   background: #fff;
-}
-
-.incidencia-card:hover::after {
-  opacity: 1;
+  border: 2px solid #e0e0e0;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-base);
 }
 
 .incidencia-card:active {
-  transform: translateX(4px) scale(0.98);
+  transform: scale(0.98);
+}
+
+.incidencia-card.libre {
+  border-color: var(--success);
+}
+
+.incidencia-asignada {
+  background: #fff;
+  border: 3px solid var(--success);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.3);
 }
 
 .card-header {
@@ -449,7 +447,6 @@ h2 {
   border-radius: var(--radius-md);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -466,19 +463,29 @@ h2 {
 .estado-badge.abierta {
   background: rgba(255, 204, 0, 0.2);
   color: #000;
-  border-color: var(--warning, #ffcc00);
+  border-color: var(--warning);
 }
 
 .estado-badge.en_progreso {
   background: rgba(0, 204, 255, 0.2);
   color: #000;
-  border-color: var(--info, #00ccff);
+  border-color: var(--info);
 }
 
 .estado-badge.resuelta {
   background: rgba(0, 255, 136, 0.2);
   color: #000;
-  border-color: var(--success, #00ff88);
+  border-color: var(--success);
+}
+
+.tiempo-espera {
+  background: rgba(255, 204, 0, 0.2);
+  color: #000;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid var(--warning);
 }
 
 .card-body {
@@ -490,7 +497,7 @@ h2 {
   color: #000;
   font-size: 15px;
   margin-bottom: 6px;
-  letter-spacing: -0.01em;
+  text-transform: capitalize;
 }
 
 .descripcion {
@@ -498,194 +505,148 @@ h2 {
   font-size: 14px;
   margin: 0;
   line-height: 1.5;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
 }
 
 .card-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   font-size: 12px;
-  color: #666;
-  padding-top: 12px;
-  border-top: 2px solid #e0e0e0;
-  gap: 8px;
-}
-
-.ubicacion {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.alertas-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px 0;
-}
-
-.alertas-list li {
+  color: #999;
   margin-bottom: 12px;
 }
 
-.alerta-item {
-  padding: 16px;
-  border-radius: var(--radius-lg);
-  border-left: 4px solid;
-  background: #f9f9f9;
-  transition: all var(--transition-base);
-}
-
-.alerta-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background: #fff;
-}
-
-.alerta-item.alto {
-  border-color: var(--error, #ff4444);
-  background: rgba(255, 68, 68, 0.1);
-}
-
-.alerta-item.medio {
-  border-color: var(--warning, #ffcc00);
-  background: rgba(255, 204, 0, 0.1);
-}
-
-.alerta-item.bajo {
-  border-color: var(--info, #00ccff);
+.comentarios-preview {
   background: rgba(0, 204, 255, 0.1);
-}
-
-.alerta-item strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
   color: #000;
-  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  border: 1px solid rgba(0, 204, 255, 0.3);
 }
 
-.alerta-item p {
-  margin: 0 0 6px 0;
+.card-action {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.ver-detalles {
+  color: #000;
+  font-weight: 900;
   font-size: 14px;
+}
+
+.btn-gestionar {
+  width: 100%;
+  background: var(--success);
+  color: #000;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.btn-gestionar:active {
+  transform: scale(0.95);
+}
+
+/* Estadísticas */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-card.pendientes {
+  border-color: var(--warning);
+}
+
+.stat-card.proceso {
+  border-color: var(--info);
+}
+
+.stat-card.resueltas {
+  border-color: var(--success);
+}
+
+.stat-icon {
+  font-size: 28px;
+}
+
+.stat-info h3 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #000;
+  margin: 0 0 4px 0;
+}
+
+.stat-info p {
+  font-size: 12px;
   color: #666;
+  margin: 0;
+}
+
+/* Consejos de Seguridad */
+.consejos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.consejo-card {
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-left: 4px solid var(--success);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.consejo-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.consejo-card p {
+  color: #ccc;
+  font-size: 13px;
+  margin: 0;
   line-height: 1.5;
 }
 
-.alerta-item .fecha {
-  font-size: 12px;
-  color: #666;
-  font-weight: 600;
-}
-
-.view-all {
-  display: inline-flex;
-  align-items: center;
-  color: #000;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 15px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-base);
-  border: 2px solid var(--success, #00ff88);
-  background: #fff;
-}
-
-.view-all:hover {
-  background: var(--success, #00ff88);
-  color: #000;
-  transform: translateX(4px);
-  border-color: var(--success, #00ff88);
-}
-
-.quick-actions {
-  background: #fff;
-  border: 2px solid var(--success, #00ff88);
-  padding: 32px 28px;
-  border-radius: var(--radius-xl);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-  animation: slideUp 0.6s ease backwards;
-  animation-delay: 0.5s;
-  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
-}
-
-.quick-actions::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 255, 136, 0.03);
-  pointer-events: none;
-}
-
-.quick-actions h2 {
-  color: #000;
-  margin-bottom: 20px;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
-}
-
-.action-btn {
-  padding: 16px;
-  background: white;
-  border: 2px solid #000;
-  color: #000;
+/* Estados */
+.loading, .empty {
   text-align: center;
-  text-decoration: none;
-  border-radius: var(--radius-lg);
-  font-weight: 700;
+  padding: 32px 16px;
+  color: #666;
   font-size: 14px;
-  transition: all var(--transition-base);
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
 }
 
-.action-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--success, #00ff88);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--transition-base);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.action-btn > * {
-  position: relative;
-  z-index: 1;
-}
-
-.action-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
-}
-
-.action-btn:hover::before {
-  transform: scaleX(1);
-}
-
-.action-btn:active {
-  transform: translateY(-2px);
+/* Responsive */
+@media (max-width: 400px) {
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

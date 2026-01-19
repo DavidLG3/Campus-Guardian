@@ -77,8 +77,7 @@ function addMarkersToMap() {
           <div class="popup-content">
             <h3>${incidencia.tipo}</h3>
             <p><strong>Descripción:</strong> ${incidencia.descripcion || 'Sin descripción'}</p>
-            <p><strong>Estado:</strong> <span class="estado-${incidencia.estado}">${incidencia.estado}</span></p>
-            <p><strong>Fecha:</strong> ${formatDate(incidencia.fecha_creacion)}</p>
+            <p><strong>Estado:</strong> <span class="estado-${incidencia.estado}">${incidencia.estado}</span>  <strong>Fecha:</strong> ${formatDate(incidencia.fecha_creacion)}</p>
             ${incidencia.direccion ? `<p><strong>Dirección:</strong> ${incidencia.direccion}</p>` : ''}
             <button onclick="navigateToIncidencia(${incidencia.id})" class="ver-detalle">Ver detalles →</button>
           </div>
@@ -234,7 +233,7 @@ h1 {
   }
 
   #map {
-    height: 400px;
+    height: 70vh;
   }
 
   .map-controls {
@@ -250,27 +249,29 @@ h1 {
 <style>
 /* Estilos globales para los popups de Leaflet */
 .leaflet-popup-content-wrapper {
-  background: #fff !important;
-  border: 2px solid #00ff88 !important;
+  background: #ffffff !important;
+  border: 2px solid #e0e0e0 !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
   padding: 0 !important;
 }
 
 .leaflet-popup-content {
   margin: 0 !important;
   width: auto !important;
+  background: #ffffff !important;
 }
 
 .leaflet-popup-tip {
-  background: #fff !important;
-  border-left: 2px solid #00ff88 !important;
-  border-bottom: 2px solid #00ff88 !important;
+  background: #ffffff !important;
+  border-left: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
 }
 
 .popup-content {
   padding: 1rem;
   min-width: 250px;
+  background: #ffffff !important;
 }
 
 .popup-content h3 {

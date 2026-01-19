@@ -11,13 +11,10 @@
               <select id="tipo" v-model="formData.tipo" required>
                 <option value="">Selecciona un tipo</option>
                 <option value="robo">Robo</option>
-<<<<<<< HEAD
-=======
                 <option value="vandalismo">Vandalismo</option>
                 <option value="incendio">Incendio</option>
                 <option value="situacion_incomoda">Situación Incómoda</option>
                 <option value="estafa">Estafa</option>
->>>>>>> Optimizar polling de notificaciones/alertas y agregar tipos de incidencia faltantes
                 <option value="accidente">Accidente</option>
                 <option value="incendio">Incendio</option>
                 <option value="vandalismo">Vandalismo</option>
@@ -52,11 +49,6 @@
               >
                 📍 Usar Mi Ubicación
               </button>
-              <div class="coordinates-info" v-if="formData.latitud && formData.longitud">
-                <small>
-                  📍 Coordenadas: {{ formData.latitud }}, {{ formData.longitud }}
-                </small>
-              </div>
             </div>
             
             <div class="form-group">
@@ -430,22 +422,6 @@ textarea {
   font-size: 13px;
   margin: 8px 0 12px 0;
   font-style: italic;
-}
-
-.coordinates-info {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(0, 255, 136, 0.1);
-  border-radius: var(--radius-lg, 12px);
-  text-align: center;
-  border: 2px solid rgba(0, 255, 136, 0.3);
-}
-
-.coordinates-info small {
-  color: var(--success, #00ff88);
-  font-family: monospace;
-  font-weight: 700;
-  font-size: 13px;
 }
 
 .btn-secondary {

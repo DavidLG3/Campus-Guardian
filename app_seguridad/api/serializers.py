@@ -137,13 +137,14 @@ class IncidenciaSerializer(serializers.ModelSerializer):
     estado = serializers.SerializerMethodField()
     archivos = ArchivoIncidenciaSerializer(many=True, read_only=True)
     comentarios = ComentarioSerializer(many=True, read_only=True)
+    comentarios_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Incidencia
         fields = ['id', 'codigo_unico', 'descripcion', 'tipo', 'fecha_creacion', 'fecha_reporte',
                   'usuario', 'usuario_reporta', 'usuario_asignado', 'asignado_a', 'latitud', 'longitud', 
                   'direccion', 'estado', 'nota_resolucion', 'fecha_resolucion', 
-                  'resuelto_por', 'resuelto_por_nombre', 'archivos', 'comentarios']
+                  'resuelto_por', 'resuelto_por_nombre', 'archivos', 'comentarios', 'comentarios_count']
         read_only_fields = ['id', 'codigo_unico', 'fecha_reporte', 'fecha_creacion']
         read_only_fields = ['id', 'fecha_reporte', 'fecha_creacion']
     
@@ -178,6 +179,9 @@ class IncidenciaSerializer(serializers.ModelSerializer):
             'resuelta': 'resuelta'
         }
         return estado_map.get(obj.estado, obj.estado)
+    
+    def get_comentarios_count(self, obj):
+        return obj.comentarios.count()
 
 
 class IncidenciaCreateSerializer(serializers.ModelSerializer):
