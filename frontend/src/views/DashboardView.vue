@@ -40,7 +40,7 @@
           </div>
           <div v-else class="incidencias-list">
             <div 
-              v-for="incidencia in incidenciasActivas" 
+              v-for="incidencia in incidenciasActivas.slice(0, 5)" 
               :key="incidencia.id"
               class="incidencia-card"
               @click="$router.push(`/incidencias/${incidencia.id}`)"
@@ -65,6 +65,9 @@
               <div class="card-action">
                 <span class="ver-detalles">Ver Detalles →</span>
               </div>
+            </div>
+            <div v-if="incidenciasActivas.length > 5" class="ver-mas-container">
+              <button class="btn-ver-mas" @click="$router.push('/incidencias')">Ver más incidencias</button>
             </div>
           </div>
         </section>
@@ -133,7 +136,7 @@
           </div>
           <div v-else class="incidencias-list">
             <div 
-              v-for="incidencia in incidenciasLibres" 
+              v-for="incidencia in incidenciasLibres.slice(0, 5)" 
               :key="incidencia.id"
               class="incidencia-card libre"
               @click="$router.push(`/incidencias/${incidencia.id}`)"
@@ -156,6 +159,9 @@
               <div class="card-action">
                 <span class="ver-detalles">Tomar Incidencia →</span>
               </div>
+            </div>
+            <div v-if="incidenciasLibres.length > 5" class="ver-mas-container">
+              <button class="btn-ver-mas" @click="$router.push('/incidencias')">Ver más incidencias</button>
             </div>
           </div>
         </section>
@@ -553,6 +559,27 @@ section {
 
 .btn-gestionar:active {
   transform: scale(0.95);
+}
+
+.btn-ver-mas {
+  background: #fff;
+  color: #111;
+  border: 2px solid #00ff88;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.75rem 2.5rem;
+  margin: 24px auto 0 auto;
+  display: block;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-ver-mas:hover {
+  background: #00ff88;
+  color: #fff;
+  border-color: #00ff88;
 }
 
 /* Estadísticas */

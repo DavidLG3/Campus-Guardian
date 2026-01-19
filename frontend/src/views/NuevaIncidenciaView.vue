@@ -180,7 +180,7 @@ function updateMarker(lat, lng) {
     })
   }).addTo(map)
   
-  marker.bindPopup(`📍 Ubicación seleccionada<br>Lat: ${lat}<br>Lng: ${lng}`).openPopup()
+  // No mostrar popup, solo el marcador
   
   // Centrar mapa en el marcador
   map.setView([lat, lng], 15)
