@@ -1,29 +1,18 @@
 <template>
-  <div v-if="isVisible" class="splash-screen">
+  <div class="splash-screen">
     <div class="splash-content">
-      <div class="logo-container">
-        <img 
-          src="https://cdn-icons-gif.flaticon.com/15576/15576868.gif" 
-          alt="Camera Security Icon" 
-          class="camera-icon"
-        />
-        <h1 class="app-title">Campus Guardian</h1>
-      </div>
-      <button @click="handleStart" class="start-button">
-        <span>START</span>
-      </button>
+      <img src="@/assets/portada_aplicacion.png" alt="Portada" class="portada-img" />
+      <button class="start-btn" @click="startApp">Empezar</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 
 const emit = defineEmits(['start'])
-const isVisible = ref(true)
 
-const handleStart = () => {
-  isVisible.value = false
+const startApp = () => {
   emit('start')
 }
 </script>
@@ -71,17 +60,23 @@ const handleStart = () => {
 }
 
 .splash-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  min-height: 100vh;
+  width: 100vw;
+  background: #000000;
+  position: relative;
   overflow: hidden;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  z-index: 1;
 }
 
 .splash-screen::before {
@@ -110,51 +105,18 @@ const handleStart = () => {
   pointer-events: none;
 }
 
-.splash-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5rem;
-  width: 90%;
-  max-width: 800px;
-  position: relative;
-  z-index: 1;
+.portada-img {
+  max-width: 85vw;
+  max-height: 50vh;
+  width: auto;
+  height: auto;
+  display: block;
 }
 
-.logo-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.camera-icon {
-  width: 150px;
-  height: 150px;
-  filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.6));
-  animation: float 3s ease-in-out infinite;
-}
-
-.app-title {
-  font-size: 72px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -0.04em;
-  text-align: center;
-  line-height: 1;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #fff 0%, var(--success, #00ff88) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.3));
-}
-
-.start-button {
-  padding: 1.75rem 6rem;
-  font-size: 2rem;
-  font-weight: 900;
+.start-btn {
+  padding: 1rem 3.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #000;
   background: #fff;
   border: none;
@@ -169,7 +131,7 @@ const handleStart = () => {
   animation: pulse 2.5s ease-in-out infinite, fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
 }
 
-.start-button::before {
+.start-btn::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -183,23 +145,18 @@ const handleStart = () => {
   z-index: 0;
 }
 
-.start-button span {
-  position: relative;
-  z-index: 1;
-}
-
-.start-button:hover::before {
+.start-btn:hover::before {
   width: 500px;
   height: 500px;
 }
 
-.start-button:hover {
+.start-btn:hover {
   transform: translateY(-6px) scale(1.08);
   box-shadow: 0 20px 60px rgba(255, 255, 255, 0.5);
   animation: none;
 }
 
-.start-button:active {
+.start-btn:active {
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 12px 40px rgba(255, 255, 255, 0.4);
 }
@@ -210,12 +167,11 @@ const handleStart = () => {
     font-size: 48px;
   }
   
-  .camera-icon {
-    width: 110px;
-    height: 110px;
+  .portada-img {
+    max-width: 250px;
   }
   
-  .start-button {
+  .start-btn {
     font-size: 1.5rem;
     padding: 1.25rem 4rem;
   }
@@ -236,12 +192,11 @@ const handleStart = () => {
     font-size: 36px;
   }
   
-  .camera-icon {
-    width: 90px;
-    height: 90px;
+  .portada-img {
+    max-width: 200px;
   }
   
-  .start-button {
+  .start-btn {
     font-size: 1.25rem;
     padding: 1rem 3rem;
   }

@@ -4,7 +4,10 @@
       <div class="nav-content">
         <!-- Logo/Brand -->
         <div class="nav-brand">
-          <router-link to="/dashboard">🛡️ Campus Guardian</router-link>
+          <router-link to="/dashboard">
+            <img src="@/assets/logo_blanco.png" alt="Logo" class="app-logo" />
+            Campus Guardian
+          </router-link>
         </div>
         
         <!-- Notification Bell (solo ciudadanos) -->
@@ -329,6 +332,13 @@ onUnmounted(() => {
 
 .nav-brand a:hover {
   transform: scale(1.02);
+}
+
+.app-logo {
+  height: 48px;
+  width: 48px;
+  margin-right: 12px;
+  vertical-align: middle;
 }
 
 /* Notification Icon with pulse animation */
