@@ -67,8 +67,18 @@ async function handleLogin() {
   try {
     await authStore.login(credentials.value)
     
-    // Redirigir a la página solicitada o al dashboard
-    const redirect = router.currentRoute.value.query.redirect || '/dashboard'
+    // Redirigir según el tipo de usuario
+    let redirect = router.currentRoute.value.query.redirect
+    
+    if (!redirect) {
+      // Si es admin, ir al dashboard de admin
+      if (authStore.isAdmin) {
+        redirect = '/admin'
+      } else {
+        redirect = '/dashboard'
+      }
+    }
+    
     router.push(redirect)
   } catch (err) {
     error.value = err.response?.data?.message || 'Error al iniciar sesión'

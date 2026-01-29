@@ -10,7 +10,10 @@ from .views import (
     ComentarioViewSet,
     register,
     login_view,
-    health_check
+    health_check,
+    listar_usuarios,
+    crear_usuario_seguridad,
+    eliminar_usuario
 )
 
 # Router para los ViewSets
@@ -30,6 +33,11 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/register/', register, name='register'),
     path('auth/user/', UsuarioViewSet.as_view({'get': 'me'}), name='current_user'),
+    
+    # Endpoints para administrador
+    path('admin/usuarios/', listar_usuarios, name='admin_listar_usuarios'),
+    path('admin/usuarios/seguridad/', crear_usuario_seguridad, name='admin_crear_seguridad'),
+    path('admin/usuarios/<int:pk>/', eliminar_usuario, name='admin_eliminar_usuario'),
     
     # Endpoints de los ViewSets
     path('', include(router.urls)),

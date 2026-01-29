@@ -65,11 +65,9 @@
           <select id="rol" v-model="formData.rol" required>
             <option value="">Selecciona un tipo</option>
             <option value="ciudadano">Ciudadano</option>
-            <option value="operador">Personal de Seguridad</option>
           </select>
           <small class="help-text">
-            • Ciudadano: Puede reportar y ver incidencias<br>
-            • Personal de Seguridad: Además puede gestionar alertas
+            Los usuarios de seguridad son creados por el administrador del sistema
           </small>
         </div>
         

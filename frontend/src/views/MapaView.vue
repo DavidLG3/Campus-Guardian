@@ -4,6 +4,37 @@
       <div class="mapa-content">
         <h1>Mapa de Incidencias</h1>
         
+        <!-- Pestañas -->
+        <div class="tabs-container">
+          <button 
+            :class="['tab-btn', { active: activeTab === 'activas' }]" 
+            @click="activeTab = 'activas'"
+          >
+            📍 Incidencias Activas
+          </button>
+          <button 
+            :class="['tab-btn', { active: activeTab === 'historial' }]" 
+            @click="activeTab = 'historial'"
+          >
+            📚 Historial
+          </button>
+        </div>
+        
+        <!-- Filtro por tipo -->
+        <div class="filter-container">
+          <label for="tipo-filter">Filtrar por tipo:</label>
+          <select id="tipo-filter" v-model="filtroTipo" class="filter-select">
+            <option value="">Todos los tipos</option>
+            <option value="robo">Robo</option>
+            <option value="vandalismo">Vandalismo</option>
+            <option value="accidente">Accidente</option>
+            <option value="incendio">Incendio</option>
+            <option value="situacion_incomoda">Situación Incómoda</option>
+            <option value="estafa">Estafa</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        
         <div class="map-container">
           <div id="map" ref="mapRef"></div>
         </div>
@@ -18,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -30,11 +61,40 @@ const incidenciaStore = useIncidenciaStore()
 const router = useRouter()
 
 const mapRef = ref(null)
+const activeTab = ref('activas')
+const filtroTipo = ref('')
 let map = null
 let markersLayer = null
 
 const defaultCenter = [40.5472, -3.6894] // Campus de Cantoblanco, UAM
 const defaultZoom = 13
+
+// Computed para filtrar incidencias según pestaña activa y filtro
+const incidenciasFiltradas = computed(() => {
+  let incidencias = []
+  
+  if (activeTab.value === 'activas') {
+    // Mostrar incidencias abiertas y en progreso
+    incidencias = incidenciaStore.incidencias.filter(i => 
+      i.estado === 'abierta' || i.estado === 'en_progreso'
+    )
+  } else {
+    // Mostrar incidencias resueltas
+    incidencias = incidenciaStore.incidencias.filter(i => i.estado === 'resuelta')
+  }
+  
+  // Aplicar filtro por tipo si está seleccionado
+  if (filtroTipo.value) {
+    incidencias = incidencias.filter(i => i.tipo === filtroTipo.value)
+  }
+  
+  return incidencias
+})
+
+// Watch para actualizar marcadores cuando cambie el filtro o la pestaña
+watch([activeTab, filtroTipo, () => incidenciaStore.incidencias], () => {
+  addMarkersToMap()
+}, { deep: true })
 
 function initMap() {
   // Crear el mapa
@@ -67,18 +127,19 @@ function addMarkersToMap() {
   // Limpiar marcadores existentes
   markersLayer.clearLayers()
   
-  // Añadir marcador por cada incidencia
-  incidenciaStore.incidencias.forEach(incidencia => {
+  // Añadir marcador por cada incidencia filtrada
+  incidenciasFiltradas.value.forEach(incidencia => {
     if (incidencia.latitud && incidencia.longitud) {
       const icon = getIconForIncident(incidencia.tipo)
       
       const marker = L.marker([incidencia.latitud, incidencia.longitud], { icon })
         .bindPopup(`
           <div class="popup-content">
-            <h3>${incidencia.tipo}</h3>
+            <h3>${formatTipo(incidencia.tipo)}</h3>
             <p><strong>Descripción:</strong> ${incidencia.descripcion || 'Sin descripción'}</p>
-            <p><strong>Estado:</strong> <span class="estado-${incidencia.estado}">${incidencia.estado}</span>  <strong>Fecha:</strong> ${formatDate(incidencia.fecha_creacion)}</p>
-            ${incidencia.direccion ? `<p><strong>Dirección:</strong> ${incidencia.direccion}</p>` : ''}
+            <p><strong>Estado:</strong> <span class="estado-${incidencia.estado}">${formatEstado(incidencia.estado)}</span></p>
+            <p><strong>Fecha:</strong> ${formatDate(incidencia.fecha_creacion)}</p>
+            ${incidencia.ubicacion ? `<p><strong>Ubicación:</strong> ${incidencia.ubicacion}</p>` : ''}
             <button onclick="navigateToIncidencia(${incidencia.id})" class="ver-detalle">Ver detalles →</button>
           </div>
         `)
@@ -96,6 +157,28 @@ function centerMap() {
 
 async function refreshIncidencias() {
   await loadIncidencias()
+}
+
+function formatEstado(estado) {
+  const estados = {
+    'abierta': 'Pendiente',
+    'en_progreso': 'En Proceso',
+    'resuelta': 'Resuelta'
+  }
+  return estados[estado] || estado
+}
+
+function formatTipo(tipo) {
+  const tipos = {
+    'robo': 'Robo',
+    'vandalismo': 'Vandalismo',
+    'accidente': 'Accidente',
+    'incendio': 'Incendio',
+    'situacion_incomoda': 'Situación Incómoda',
+    'estafa': 'Estafa',
+    'otro': 'Otro'
+  }
+  return tipos[tipo] || tipo
 }
 
 function formatDate(dateString) {
@@ -161,6 +244,82 @@ h1 {
   animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.tabs-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 1rem 2rem;
+  background: #222;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: var(--radius-lg, 12px);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn:hover {
+  background: #333;
+  border-color: #00ff88;
+}
+
+.tab-btn.active {
+  background: #00ff88;
+  color: #000;
+  border-color: #00ff88;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.3);
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
+}
+
+.filter-container label {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.filter-select {
+  flex: 1;
+  padding: 0.75rem 1.25rem;
+  background: #222;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: var(--radius-lg, 12px);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-select:hover {
+  border-color: #00ff88;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.filter-select option {
+  background: #222;
+  color: #fff;
+}
+
 .map-container {
   background: #fff;
   border-radius: var(--radius-2xl, 20px);
@@ -168,7 +327,7 @@ h1 {
   border: 2px solid var(--success, #00ff88);
   box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2);
   margin-bottom: 1.5rem;
-  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
 }
 
 #map {
@@ -230,6 +389,23 @@ h1 {
 
   h1 {
     font-size: 32px;
+  }
+
+  .tabs-container {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    width: 100%;
+  }
+
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-container label {
+    text-align: left;
   }
 
   #map {

@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
   
   const userRole = computed(() => {
     try {
-      return user.value?.rol || null
+      return user.value?.tipo || null
     } catch (err) {
       console.error('Error en userRole:', err)
       return null
@@ -39,7 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
   
   const isOperador = computed(() => {
     try {
-      return userRole.value === 'operador'
+      return userRole.value === 'seguridad'
     } catch (err) {
       console.error('Error en isOperador:', err)
       return false
@@ -48,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
   
   const isCiudadano = computed(() => {
     try {
-      return userRole.value === 'ciudadano'
+      return userRole.value === 'normal'
     } catch (err) {
       console.error('Error en isCiudadano:', err)
       return false

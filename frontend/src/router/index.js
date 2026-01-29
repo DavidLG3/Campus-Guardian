@@ -41,13 +41,13 @@ const routes = [
     path: '/mis-incidencias',
     name: 'MisIncidencias',
     component: () => import('@/views/MisIncidenciasView.vue'),
-    meta: { requiresAuth: true, roles: ['ciudadano'] }
+    meta: { requiresAuth: true, roles: ['normal'] }
   },
   {
     path: '/incidencias/nueva',
     name: 'NuevaIncidencia',
     component: () => import('@/views/NuevaIncidenciaView.vue'),
-    meta: { requiresAuth: true, roles: ['ciudadano'] }
+    meta: { requiresAuth: true, roles: ['normal'] }
   },
   {
     path: '/incidencias/:id',
@@ -59,19 +59,37 @@ const routes = [
     path: '/alertas',
     name: 'Alertas',
     component: () => import('@/views/AlertasView.vue'),
-    meta: { requiresAuth: true, roles: ['admin', 'operador'] }
+    meta: { requiresAuth: true, roles: ['admin', 'seguridad'] }
   },
   {
     path: '/notificaciones',
     name: 'Notificaciones',
     component: () => import('@/views/NotificacionesView.vue'),
-    meta: { requiresAuth: true, roles: ['ciudadano'] }
+    meta: { requiresAuth: true, roles: ['normal'] }
   },
   {
     path: '/perfil',
     name: 'Perfil',
     component: () => import('@/views/PerfilView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('@/views/AdminDashboardView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/admin/usuarios',
+    name: 'AdminUsuarios',
+    component: () => import('@/views/AdminUsuariosView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/admin/crear-seguridad',
+    name: 'AdminCrearSeguridad',
+    component: () => import('@/views/AdminCrearSeguridadView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/:pathMatch(.*)*',

@@ -337,7 +337,7 @@ const openImageModal = (url) => {
 }
 
 const canChangeStatus = computed(() => 
-  authStore.isAdmin || authStore.isOperador
+  authStore.isOperador // Solo el personal de seguridad puede cambiar estados
 )
 
 const isAsignadaAOtro = computed(() => {

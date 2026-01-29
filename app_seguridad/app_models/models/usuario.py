@@ -5,6 +5,7 @@ class Usuario(AbstractUser):
     TIPOS_USUARIO = (
         ('normal', 'Usuario Normal'),
         ('seguridad', 'Usuario de Seguridad'),
+        ('admin', 'Administrador'),
     )
     tipo = models.CharField(max_length=20, choices=TIPOS_USUARIO, default='normal')
     

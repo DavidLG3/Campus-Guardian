@@ -146,7 +146,7 @@
                 <span class="tiempo-espera">⏱️ {{ tiempoEspera(incidencia.fecha_creacion) }}</span>
               </div>
               <div class="card-body">
-                <div class="tipo-incidencia">{{ incidencia.tipo }}</div>
+                <div class="tipo-incidencia">{{ formatTipo(incidencia.tipo) }}</div>
                 <p class="descripcion">{{ truncateText(incidencia.descripcion, 80) }}</p>
               </div>
               <div class="card-footer">

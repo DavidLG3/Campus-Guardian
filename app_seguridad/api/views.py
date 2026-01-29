@@ -538,3 +538,161 @@ class ComentarioViewSet(viewsets.ModelViewSet):
         serializer.save(usuario=self.request.user)
 
 
+# Endpoints para el administrador
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def listar_usuarios(request):
+    """
+    Listar todos los usuarios, con filtrado opcional por tipo.
+    GET /api/admin/usuarios/?tipo=normal|seguridad
+    Solo accesible para administradores.
+    """
+    # Verificar que el usuario es administrador
+    if request.user.tipo != 'admin':
+        return Response(
+            {"message": "No tienes permisos para acceder a este recurso"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Obtener parámetro de filtro
+    tipo = request.query_params.get('tipo', None)
+    search = request.query_params.get('search', None)
+    
+    # Filtrar usuarios
+    usuarios = Usuario.objects.all().order_by('-date_joined')
+    
+    if tipo:
+        usuarios = usuarios.filter(tipo=tipo)
+    
+    if search:
+        # Buscar por nombre, email o username
+        from django.db.models import Q
+        usuarios = usuarios.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(username__icontains=search)
+        )
+    
+    serializer = UsuarioSerializer(usuarios, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def crear_usuario_seguridad(request):
+    """
+    Crear un nuevo usuario de seguridad.
+    POST /api/admin/usuarios/seguridad/
+    Solo accesible para administradores.
+    Espera: {
+        "username": "...",
+        "email": "...",
+        "password": "...",
+        "first_name": "...",
+        "last_name": "...",
+        "telefono": "..." (opcional)
+    }
+    """
+    # Verificar que el usuario es administrador
+    if request.user.tipo != 'admin':
+        return Response(
+            {"message": "No tienes permisos para acceder a este recurso"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Validar datos requeridos
+    required_fields = ['username', 'email', 'password', 'first_name', 'last_name']
+    for field in required_fields:
+        if field not in request.data:
+            return Response(
+                {"message": f"El campo {field} es requerido"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    # Verificar que el username no existe
+    if Usuario.objects.filter(username=request.data['username']).exists():
+        return Response(
+            {"message": "El nombre de usuario ya está en uso"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Verificar que el email no existe
+    if Usuario.objects.filter(email=request.data['email']).exists():
+        return Response(
+            {"message": "El email ya está en uso"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Crear usuario de seguridad
+    try:
+        usuario = Usuario.objects.create_user(
+            username=request.data['username'],
+            email=request.data['email'],
+            password=request.data['password'],
+            first_name=request.data['first_name'],
+            last_name=request.data['last_name'],
+            telefono=request.data.get('telefono', ''),
+            tipo='seguridad'
+        )
+        
+        serializer = UsuarioSerializer(usuario, context={'request': request})
+        return Response(
+            {
+                "message": "Usuario de seguridad creado exitosamente",
+                "usuario": serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+    except Exception as e:
+        return Response(
+            {"message": f"Error al crear usuario: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def eliminar_usuario(request, pk):
+    """
+    Eliminar un usuario.
+    DELETE /api/admin/usuarios/{id}/
+    Solo accesible para administradores.
+    """
+    # Verificar que el usuario es administrador
+    if request.user.tipo != 'admin':
+        return Response(
+            {"message": "No tienes permisos para acceder a este recurso"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        usuario = Usuario.objects.get(pk=pk)
+        
+        # No permitir eliminar al propio administrador
+        if usuario.id == request.user.id:
+            return Response(
+                {"message": "No puedes eliminar tu propia cuenta"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # No permitir eliminar otros administradores
+        if usuario.tipo == 'admin':
+            return Response(
+                {"message": "No puedes eliminar otros administradores"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        usuario.delete()
+        return Response(
+            {"message": "Usuario eliminado exitosamente"},
+            status=status.HTTP_200_OK
+        )
+    except Usuario.DoesNotExist:
+        return Response(
+            {"message": "Usuario no encontrado"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+
