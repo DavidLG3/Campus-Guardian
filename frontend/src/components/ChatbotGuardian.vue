@@ -16,7 +16,9 @@
       <!-- Header -->
       <div class="chat-header">
         <div class="header-info">
-          <div class="avatar">🛡️</div>
+          <div class="avatar">
+            <img src="@/assets/logo_blanco.png" alt="El Guardián" class="guardian-logo" />
+          </div>
           <div class="guardian-info">
             <h3>El Guardián</h3>
             <span class="status">En línea</span>
@@ -97,7 +99,7 @@ const showQuickOptions = ref(false)
 const currentContext = ref('initial') // initial, funcionalidades, clasificacion
 
 const quickOptions = ref([
-  { label: '📱 Ayuda con funcionalidades', value: 'funcionalidades' },
+  { label: 'Ayuda con funcionalidades', value: 'funcionalidades', icon: 'mobile-screen' },
   { label: '🏷️ Clasificar incidencia', value: 'clasificacion' }
 ])
 
@@ -326,6 +328,14 @@ onMounted(() => {
   justify-content: center;
   font-size: 24px;
   border: 2px solid #000;
+  overflow: hidden;
+}
+
+.guardian-logo {
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+  transform: scale(1.2);
 }
 
 .guardian-info h3 {
