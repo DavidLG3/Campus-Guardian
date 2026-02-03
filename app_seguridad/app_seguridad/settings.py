@@ -220,6 +220,9 @@ CLOUDINARY_STORAGE = {
     'RESOURCE_TYPE': 'auto',  # Detecta automáticamente si es imagen o video
 }
 
+# Google Gemini API configuration for chatbot
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
 # Storage configuration (Django 4.2+)
 STORAGES = {
     "default": {

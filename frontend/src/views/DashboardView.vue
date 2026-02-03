@@ -3,11 +3,8 @@
     <div class="dashboard-content">
       <!-- Dashboard para Ciudadanos -->
       <div v-if="authStore.isCiudadano" class="ciudadano-dashboard">
-        <h1>Dashboard</h1>
-        
         <!-- Acciones Rápidas -->
         <section class="acciones-rapidas">
-          <h2>Acciones Rápidas</h2>
           <div class="actions-grid">
             <router-link to="/incidencias/nueva" class="action-card">
               <div class="action-icon">➕</div>
@@ -98,8 +95,6 @@
 
       <!-- Dashboard para Seguridad -->
       <div v-else class="seguridad-dashboard">
-        <h1>Dashboard</h1>
-        
         <!-- Mi Incidencia Asignada -->
         <section v-if="miIncidenciaAsignada" class="mi-incidencia">
           <h2>Mi Incidencia Asignada</h2>
@@ -346,7 +341,7 @@ onMounted(async () => {
 }
 
 .dashboard-content {
-  padding: 1rem 1rem 2rem;
+  padding: 3.5rem 1rem 2rem;
   max-width: 600px;
   margin: 0 auto;
   background: #000;

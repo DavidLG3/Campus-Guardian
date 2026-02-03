@@ -244,9 +244,9 @@ const stopPolling = () => {
 
 function formatRole(role) {
   const roles = {
-    'admin': 'Administrador',
-    'operador': 'Operador',
-    'ciudadano': 'Ciudadano'
+    'normal': 'Miembro',
+    'seguridad': 'Personal de Seguridad',
+    'admin': 'Administrador'
   }
   return roles[role] || role
 }
@@ -350,8 +350,8 @@ onUnmounted(() => {
 }
 
 .app-logo {
-  height: 48px;
-  width: 48px;
+  height: 70px;
+  width: 70px;
   margin-right: 12px;
   vertical-align: middle;
 }

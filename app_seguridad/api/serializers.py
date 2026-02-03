@@ -281,12 +281,13 @@ class AlertaSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer para registro de nuevos usuarios"""
-    password = serializers.CharField(write_only=True, min_length=6)
-    nombre = serializers.CharField(write_only=True, required=True)
-    telefono = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    nombre = serializers.CharField(write_only=True, required=True, max_length=100)
+    telefono = serializers.CharField(required=False, allow_blank=True, max_length=20)
     rol = serializers.ChoiceField(
         choices=['ciudadano', 'operador'],
-        required=True,
+        required=False,
+        default='ciudadano',
         write_only=True
     )
     
@@ -295,55 +296,119 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['nombre', 'email', 'telefono', 'rol', 'password']
     
     def validate_email(self, value):
-        """Validar que el email no esté ya registrado y tenga formato válido"""
+        """Validar email UAM con exactamente un @ y dominios permitidos"""
         import re
         
-        # Validar formato de email
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_pattern, value):
-            raise serializers.ValidationError("El formato del email no es válido")
+        # Validar que tenga exactamente un @
+        if value.count('@') != 1:
+            raise serializers.ValidationError("El email debe contener exactamente un símbolo @")
+        
+        # Convertir a minúsculas para validación
+        value = value.lower().strip()
+        
+        # Validar que termine en @uam.es o @estudiante.uam.es
+        if not (value.endswith('@uam.es') or value.endswith('@estudiante.uam.es')):
+            raise serializers.ValidationError(
+                "Solo se permiten correos institucionales de la UAM (@uam.es o @estudiante.uam.es)"
+            )
+        
+        # Validar longitud máxima del email
+        if len(value) > 254:
+            raise serializers.ValidationError("El email es demasiado largo (máximo 254 caracteres)")
+        
+        # Validar formato básico
+        parte_local = value.split('@')[0]
+        if not parte_local or len(parte_local) < 1:
+            raise serializers.ValidationError("El email no tiene una parte válida antes del @")
+        
+        # Validar caracteres permitidos en la parte local
+        if not re.match(r'^[a-z0-9._-]+$', parte_local):
+            raise serializers.ValidationError(
+                "El email solo puede contener letras, números, puntos, guiones y guiones bajos antes del @"
+            )
         
         # Validar que no esté registrado
         if Usuario.objects.filter(email=value).exists():
             raise serializers.ValidationError("Este email ya está registrado")
-        return value.lower()
+        
+        return value
     
     def validate_telefono(self, value):
-        """Validar formato de teléfono si se proporciona"""
+        """Validar formato de teléfono: prefijo + 9 dígitos"""
         import re
         
         if not value or value.strip() == '':
             return ''
         
-        # Eliminar espacios y caracteres comunes
-        cleaned = re.sub(r'[\s\-\(\)]', '', value)
+        # El teléfono debe venir en formato +XX123456789 o +XXX123456789
+        value = value.strip()
         
-        # Validar que contenga solo dígitos y opcionalmente un +
-        if not re.match(r'^\+?\d{9,15}$', cleaned):
+        # Validar que empiece con +
+        if not value.startswith('+'):
+            raise serializers.ValidationError("El teléfono debe incluir el prefijo internacional")
+        
+        # Separar prefijo y número
+        match = re.match(r'^(\+\d{1,3})(\d{9})$', value)
+        if not match:
             raise serializers.ValidationError(
-                "El teléfono debe contener entre 9 y 15 dígitos. "
-                "Puede incluir + al inicio para código de país."
+                "El teléfono debe tener un prefijo válido (+XX) seguido de exactamente 9 dígitos"
             )
         
-        return cleaned
+        prefijo, numero = match.groups()
+        
+        # Validar que el número tenga exactamente 9 dígitos
+        if len(numero) != 9:
+            raise serializers.ValidationError("El número debe tener exactamente 9 dígitos (sin contar el prefijo)")
+        
+        return value
     
     def validate_nombre(self, value):
-        """Validar que el nombre tenga al menos 2 caracteres"""
-        if len(value.strip()) < 2:
+        """Validar que el nombre tenga longitud adecuada"""
+        value = value.strip()
+        
+        if len(value) < 2:
             raise serializers.ValidationError("El nombre debe tener al menos 2 caracteres")
-        return value.strip()
+        
+        if len(value) > 100:
+            raise serializers.ValidationError("El nombre es demasiado largo (máximo 100 caracteres)")
+        
+        # Validar que solo contenga letras, espacios y algunos caracteres especiales
+        import re
+        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", value):
+            raise serializers.ValidationError("El nombre solo puede contener letras, espacios, guiones y apóstrofes")
+        
+        return value
     
     def validate_password(self, value):
-        """Validar contraseña robusta"""
-        if len(value) < 6:
-            raise serializers.ValidationError("La contraseña debe tener al menos 6 caracteres")
+        """Validar contraseña segura con múltiples requisitos"""
+        import re
         
-        # Verificar que tenga al menos una letra y un número
-        if not any(c.isalpha() for c in value):
-            raise serializers.ValidationError("La contraseña debe contener al menos una letra")
+        # Longitud mínima y máxima
+        if len(value) < 8:
+            raise serializers.ValidationError("La contraseña debe tener al menos 8 caracteres")
         
-        if not any(c.isdigit() for c in value):
+        if len(value) > 128:
+            raise serializers.ValidationError("La contraseña es demasiado larga (máximo 128 caracteres)")
+        
+        # Verificar que tenga al menos una letra minúscula
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError("La contraseña debe contener al menos una letra minúscula")
+        
+        # Verificar que tenga al menos una letra mayúscula
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("La contraseña debe contener al menos una letra mayúscula")
+        
+        # Verificar que tenga al menos un número
+        if not re.search(r'\d', value):
             raise serializers.ValidationError("La contraseña debe contener al menos un número")
+        
+        # Verificar que tenga al menos un carácter especial
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/]', value):
+            raise serializers.ValidationError("La contraseña debe contener al menos un carácter especial (!@#$%^&*...)")
+        
+        # Verificar que no contenga espacios
+        if ' ' in value:
+            raise serializers.ValidationError("La contraseña no puede contener espacios")
         
         return value
     

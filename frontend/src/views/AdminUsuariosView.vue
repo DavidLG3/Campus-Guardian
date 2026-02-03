@@ -18,7 +18,7 @@
         />
         <select v-model="filtroTipo" class="filter-select">
           <option value="">Todos los tipos</option>
-          <option value="normal">Usuarios Normales</option>
+          <option value="normal">Miembros</option>
           <option value="seguridad">Personal de Seguridad</option>
         </select>
       </div>
@@ -31,9 +31,9 @@
 
       <!-- Lista de Usuarios -->
       <div v-else class="usuarios-container">
-        <!-- Usuarios Normales -->
+        <!-- Miembros -->
         <section v-if="usuariosNormalesFiltrados.length > 0" class="usuarios-section">
-          <h2>👤 Usuarios Normales ({{ usuariosNormalesFiltrados.length }})</h2>
+          <h2>👤 Miembros ({{ usuariosNormalesFiltrados.length }})</h2>
           <div class="usuarios-grid">
             <div
               v-for="usuario in usuariosNormalesFiltrados"

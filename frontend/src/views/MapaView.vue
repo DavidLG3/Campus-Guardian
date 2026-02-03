@@ -229,7 +229,7 @@ onUnmounted(() => {
 }
 
 .mapa-content {
-  padding: 2rem;
+  padding: 3.5rem 2rem 2rem;
   animation: fadeIn 0.4s ease;
   background: #000;
   min-height: 100vh;

@@ -13,7 +13,8 @@ from .views import (
     health_check,
     listar_usuarios,
     crear_usuario_seguridad,
-    eliminar_usuario
+    eliminar_usuario,
+    chatbot_view
 )
 
 # Router para los ViewSets
@@ -38,6 +39,9 @@ urlpatterns = [
     path('admin/usuarios/', listar_usuarios, name='admin_listar_usuarios'),
     path('admin/usuarios/seguridad/', crear_usuario_seguridad, name='admin_crear_seguridad'),
     path('admin/usuarios/<int:pk>/', eliminar_usuario, name='admin_eliminar_usuario'),
+    
+    # Chatbot endpoint
+    path('chatbot/', chatbot_view, name='chatbot'),
     
     # Endpoints de los ViewSets
     path('', include(router.urls)),

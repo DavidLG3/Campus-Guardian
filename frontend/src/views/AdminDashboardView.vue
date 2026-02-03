@@ -37,7 +37,7 @@
             <div class="stat-icon">👤</div>
             <div class="stat-info">
               <h3>{{ estadisticas.usuariosNormales }}</h3>
-              <p>Usuarios Normales</p>
+              <p>Miembros</p>
             </div>
           </div>
           

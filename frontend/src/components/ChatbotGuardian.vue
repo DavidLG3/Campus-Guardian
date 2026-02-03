@@ -83,6 +83,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import api from '@/config/api'
 
 const authStore = useAuthStore()
 
@@ -125,7 +126,7 @@ function initializeChat() {
   const userName = authStore.user?.nombre || authStore.user?.username || 'Usuario'
   
   addMessage(
-    `¡Hola, ${userName}! 👋<br><br>Soy <strong>El Guardián</strong>, tu asistente virtual.<br><br>¿En qué puedo ayudarte hoy?`,
+    `¡Hola, ${userName}! 👋<br><br>Soy <strong>El Guardián</strong>, tu asistente virtual con inteligencia artificial.<br><br>¿En qué puedo ayudarte hoy?`,
     'guardian'
   )
   
@@ -156,178 +157,50 @@ async function selectOption(option) {
   showQuickOptions.value = false
   
   if (option === 'funcionalidades') {
-    addMessage('Ayuda con funcionalidades de la app', 'user')
-    await simulateTyping()
-    showFuncionalidadesHelp()
+    userInput.value = 'Ayúdame con las funcionalidades de la app'
+    await sendMessage()
   } else if (option === 'clasificacion') {
-    addMessage('Ayuda para clasificar mi incidencia', 'user')
-    await simulateTyping()
-    showClasificacionHelp()
+    userInput.value = 'Necesito ayuda para clasificar una incidencia'
+    await sendMessage()
   }
-}
-
-function showFuncionalidadesHelp() {
-  const role = authStore.user?.tipo || 'normal'
-  
-  let helpText = `<strong>📱 Funcionalidades disponibles:</strong><br><br>`
-  
-  if (role === 'normal') {
-    helpText += `
-      <strong>🆕 Reportar Incidencia:</strong><br>
-      Crea una nueva incidencia con fotos/videos y ubicación.<br><br>
-      
-      <strong>📋 Ver Incidencias:</strong><br>
-      Consulta todas las incidencias del campus.<br><br>
-      
-      <strong>📊 Mis Incidencias:</strong><br>
-      Revisa el estado de tus reportes.<br><br>
-      
-      <strong>🔔 Notificaciones:</strong><br>
-      Recibe actualizaciones sobre tus incidencias.<br><br>
-      
-      <strong>👤 Perfil:</strong><br>
-      Actualiza tu información personal.
-    `
-  } else if (role === 'operador') {
-    helpText += `
-      <strong>📋 Gestión de Incidencias:</strong><br>
-      Revisa y gestiona las incidencias asignadas.<br><br>
-      
-      <strong>🚨 Alertas:</strong><br>
-      Recibe notificaciones de nuevas incidencias.<br><br>
-      
-      <strong>📊 Dashboard:</strong><br>
-      Visualiza estadísticas y métricas.
-    `
-  } else if (role === 'admin') {
-    helpText += `
-      <strong>⚙️ Administración Completa:</strong><br>
-      Gestiona usuarios, incidencias y configuración del sistema.<br><br>
-      
-      <strong>📊 Analytics:</strong><br>
-      Accede a reportes y estadísticas avanzadas.
-    `
-  }
-  
-  addMessage(helpText, 'guardian')
-  
-  setTimeout(() => {
-    addMessage('¿Necesitas ayuda con algo más?', 'guardian')
-    showQuickOptions.value = true
-    currentContext.value = 'initial'
-  }, 1500)
-}
-
-function showClasificacionHelp() {
-  addMessage(
-    `<strong>🏷️ Clasificación de Incidencias:</strong><br><br>
-    Te ayudaré a identificar el tipo correcto. Descríbeme brevemente qué ocurrió:<br><br>
-    <em>Ejemplo: "Vi humo saliendo de un edificio"</em>`,
-    'guardian'
-  )
-  
-  currentContext.value = 'clasificacion'
 }
 
 async function sendMessage() {
-  if (!userInput.value.trim()) return
+  if (!userInput.value.trim() || isTyping.value) return
   
-  const message = userInput.value
-  addMessage(message, 'user')
+  const message = userInput.value.trim()
   userInput.value = ''
   
+  // Agregar mensaje del usuario
+  addMessage(message, 'user')
+  
+  // Simular escritura
   await simulateTyping()
   
-  if (currentContext.value === 'clasificacion') {
-    classifyIncident(message)
-  } else {
-    handleGeneralQuery(message)
-  }
-}
-
-function classifyIncident(description) {
-  const lowerDesc = description.toLowerCase()
-  
-  let matchedType = null
-  
-  // Palabras clave para cada tipo
-  const keywords = {
-    robo: ['robaron', 'robo', 'robado', 'sustrajeron', 'me quitaron', 'hurto', 'ladrón'],
-    accidente: ['accidente', 'choque', 'caída', 'lesión', 'herido', 'golpe', 'caí'],
-    incendio: ['fuego', 'incendio', 'humo', 'llamas', 'quemando', 'arde'],
-    vandalismo: ['rayado', 'roto', 'vandalismo', 'graffiti', 'daño', 'destruido', 'pintado'],
-    situacion_incomoda: ['acoso', 'incómodo', 'hostigamiento', 'persiguiendo', 'miedo', 'amenaza'],
-    estafa: ['estafa', 'fraude', 'engaño', 'timaron', 'prometieron'],
-    otro: ['otro', 'diferente', 'extraño']
-  }
-  
-  // Buscar coincidencias
-  for (const [tipo, words] of Object.entries(keywords)) {
-    if (words.some(word => lowerDesc.includes(word))) {
-      matchedType = tipo
-      break
-    }
-  }
-  
-  if (matchedType) {
-    const tipoInfo = tiposIncidencia.find(t => t.value === matchedType)
+  try {
+    // Preparar historial para enviar a la API
+    const history = messages.value
+      .filter(m => m.sender !== 'system')
+      .map(m => ({
+        sender: m.sender,
+        text: m.text.replace(/<[^>]*>/g, '') // Remover HTML
+      }))
+    
+    // Llamar a la API del chatbot
+    const response = await api.post('/chatbot/', {
+      message: message,
+      history: history.slice(0, -1) // Excluir el último mensaje (el actual)
+    })
+    
+    // Agregar respuesta del guardián
+    addMessage(response.data.response, 'guardian')
+    
+  } catch (error) {
+    console.error('Error al comunicarse con el chatbot:', error)
     addMessage(
-      `Basándome en tu descripción, esto parece ser un caso de:<br><br>
-      <strong>✅ ${tipoInfo.label}</strong><br>
-      <em>${tipoInfo.desc}</em><br><br>
-      ¿Es correcto? Si necesitas reportar esta incidencia, usa el botón "Reportar Incidencia" en el menú.`,
+      'Lo siento, he tenido un problema al procesar tu mensaje. Por favor, intenta de nuevo.',
       'guardian'
     )
-  } else {
-    addMessage(
-      `No estoy seguro del tipo exacto. Aquí están todas las categorías:<br><br>
-      ${tiposIncidencia.map(t => `<strong>${t.label}:</strong> ${t.desc}`).join('<br>')}<br><br>
-      ¿Cuál describe mejor tu situación?`,
-      'guardian'
-    )
-  }
-  
-  setTimeout(() => {
-    addMessage('¿Puedo ayudarte con algo más?', 'guardian')
-    showQuickOptions.value = true
-    currentContext.value = 'initial'
-  }, 2000)
-}
-
-function handleGeneralQuery(query) {
-  const lowerQuery = query.toLowerCase()
-  
-  // Respuestas basadas en palabras clave
-  if (lowerQuery.includes('cómo') && lowerQuery.includes('reportar')) {
-    addMessage(
-      `Para reportar una incidencia:<br><br>
-      1. Ve a "Reportar Incidencia" en el menú<br>
-      2. Selecciona el tipo de incidencia<br>
-      3. Describe lo ocurrido<br>
-      4. Marca la ubicación en el mapa<br>
-      5. Adjunta fotos o videos (opcional)<br>
-      6. Envía el reporte<br><br>
-      ¡Recibirás notificaciones sobre el progreso!`,
-      'guardian'
-    )
-  } else if (lowerQuery.includes('notificacion')) {
-    addMessage(
-      `Las notificaciones te informan sobre:<br><br>
-      • Cambios de estado en tus incidencias<br>
-      • Cuando se asigna personal de seguridad<br>
-      • Cuando se resuelve tu caso<br><br>
-      Activas automáticamente en "Notificaciones" del menú.`,
-      'guardian'
-    )
-  } else {
-    addMessage(
-      `Entiendo tu consulta. ¿Quieres que te ayude con:<br><br>
-      • Funcionalidades de la app<br>
-      • Clasificar una incidencia<br><br>
-      Selecciona una opción abajo.`,
-      'guardian'
-    )
-    showQuickOptions.value = true
   }
 }
 

@@ -30,45 +30,65 @@
             v-model="formData.nombre"
             type="text"
             required
-            placeholder="Juan Pérez"
+            placeholder="Juan Pérez García"
+            maxlength="100"
+            @blur="validateNombre"
+            :class="{ 'input-error': validationErrors.nombre }"
           />
+          <small v-if="validationErrors.nombre" class="error-text">{{ validationErrors.nombre }}</small>
+          <small v-else class="help-text">Mínimo 2 caracteres, máximo 100</small>
         </div>
         
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email">Email institucional UAM</label>
           <input
             id="email"
             v-model="formData.email"
             type="email"
             required
-            placeholder="tu@email.com"
-            pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-            title="Introduce un email válido (ejemplo@dominio.com)"
+            placeholder="nombre.apellido@uam.es"
+            maxlength="254"
+            @blur="validateEmail"
+            @input="validateEmail"
+            :class="{ 'input-error': validationErrors.email }"
           />
+          <small v-if="validationErrors.email" class="error-text">{{ validationErrors.email }}</small>
+          <small v-else class="help-text">Solo correos @uam.es o @estudiante.uam.es</small>
         </div>
         
         <div class="form-group">
           <label for="telefono">Teléfono (opcional)</label>
-          <input
-            id="telefono"
-            v-model="formData.telefono"
-            type="tel"
-            placeholder="+34 600 000 000"
-            pattern="[\+]?[0-9\s\-\(\)]{9,20}"
-            title="Introduce un número de teléfono válido (9-15 dígitos)"
-          />
-          <small class="help-text">Opcional. Puedes incluir código de país (+34, +1, etc.)</small>
-        </div>
-        
-        <div class="form-group">
-          <label for="rol">Tipo de usuario</label>
-          <select id="rol" v-model="formData.rol" required>
-            <option value="">Selecciona un tipo</option>
-            <option value="ciudadano">Ciudadano</option>
-          </select>
-          <small class="help-text">
-            Los usuarios de seguridad son creados por el administrador del sistema
-          </small>
+          <div class="phone-input-group">
+            <select 
+              v-model="formData.prefijo" 
+              class="phone-prefix"
+              :class="{ 'input-error': validationErrors.telefono }"
+            >
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+39">🇮🇹 +39</option>
+              <option value="+351">🇵🇹 +351</option>
+              <option value="+52">🇲🇽 +52</option>
+              <option value="+54">🇦🇷 +54</option>
+              <option value="+56">🇨🇱 +56</option>
+              <option value="+57">🇨🇴 +57</option>
+            </select>
+            <input
+              id="telefono"
+              v-model="formData.telefono"
+              type="tel"
+              placeholder="600000000"
+              maxlength="9"
+              @input="validateTelefono"
+              @blur="validateTelefono"
+              :class="{ 'input-error': validationErrors.telefono }"
+            />
+          </div>
+          <small v-if="validationErrors.telefono" class="error-text">{{ validationErrors.telefono }}</small>
+          <small v-else class="help-text">Opcional. Exactamente 9 dígitos</small>
         </div>
         
         <div class="form-group">
@@ -78,11 +98,34 @@
             v-model="formData.password"
             type="password"
             required
-            minlength="6"
+            minlength="8"
+            maxlength="128"
             placeholder="••••••••"
-            title="Mínimo 6 caracteres, debe incluir letras y números"
+            @input="validatePassword"
+            @blur="validatePassword"
+            :class="{ 'input-error': validationErrors.password }"
           />
-          <small class="help-text">Mínimo 6 caracteres, debe contener letras y números</small>
+          <div class="password-requirements">
+            <small :class="{ 'req-met': passwordChecks.length, 'req-unmet': !passwordChecks.length }">
+              ✓ Mínimo 8 caracteres
+            </small>
+            <small :class="{ 'req-met': passwordChecks.lowercase, 'req-unmet': !passwordChecks.lowercase }">
+              ✓ Una letra minúscula
+            </small>
+            <small :class="{ 'req-met': passwordChecks.uppercase, 'req-unmet': !passwordChecks.uppercase }">
+              ✓ Una letra mayúscula
+            </small>
+            <small :class="{ 'req-met': passwordChecks.number, 'req-unmet': !passwordChecks.number }">
+              ✓ Un número
+            </small>
+            <small :class="{ 'req-met': passwordChecks.special, 'req-unmet': !passwordChecks.special }">
+              ✓ Un carácter especial (!@#$%...)
+            </small>
+            <small :class="{ 'req-met': passwordChecks.noSpaces, 'req-unmet': !passwordChecks.noSpaces }">
+              ✓ Sin espacios
+            </small>
+          </div>
+          <small v-if="validationErrors.password" class="error-text">{{ validationErrors.password }}</small>
         </div>
         
         <div class="form-group">
@@ -93,7 +136,11 @@
             type="password"
             required
             placeholder="••••••••"
+            @blur="validatePassword2"
+            @input="validatePassword2"
+            :class="{ 'input-error': validationErrors.password2 }"
           />
+          <small v-if="validationErrors.password2" class="error-text">{{ validationErrors.password2 }}</small>
         </div>
         
         <div v-if="error" class="error-message">
@@ -124,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AvatarEditor from '@/components/AvatarEditor.vue'
@@ -135,10 +182,27 @@ const authStore = useAuthStore()
 const formData = ref({
   nombre: '',
   email: '',
+  prefijo: '+34',
   telefono: '',
-  rol: '',
   password: '',
   password2: ''
+})
+
+const validationErrors = ref({
+  nombre: '',
+  email: '',
+  telefono: '',
+  password: '',
+  password2: ''
+})
+
+const passwordChecks = ref({
+  length: false,
+  lowercase: false,
+  uppercase: false,
+  number: false,
+  special: false,
+  noSpaces: false
 })
 
 const error = ref('')
@@ -147,6 +211,171 @@ const isLoading = ref(false)
 const showAvatarEditor = ref(false)
 const avatarPreview = ref(null)
 const avatarBlob = ref(null)
+
+function validateNombre() {
+  const nombre = formData.value.nombre.trim()
+  
+  if (!nombre) {
+    validationErrors.value.nombre = 'El nombre es requerido'
+    return false
+  }
+  
+  if (nombre.length < 2) {
+    validationErrors.value.nombre = 'El nombre debe tener al menos 2 caracteres'
+    return false
+  }
+  
+  if (nombre.length > 100) {
+    validationErrors.value.nombre = 'El nombre es demasiado largo (máximo 100 caracteres)'
+    return false
+  }
+  
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$/.test(nombre)) {
+    validationErrors.value.nombre = 'El nombre solo puede contener letras, espacios, guiones y apóstrofes'
+    return false
+  }
+  
+  validationErrors.value.nombre = ''
+  return true
+}
+
+function validateEmail() {
+  const email = formData.value.email.trim().toLowerCase()
+  
+  if (!email) {
+    validationErrors.value.email = 'El email es requerido'
+    return false
+  }
+  
+  // Validar que tenga exactamente un @
+  const atCount = (email.match(/@/g) || []).length
+  if (atCount !== 1) {
+    validationErrors.value.email = 'El email debe contener exactamente un símbolo @'
+    return false
+  }
+  
+  // Validar dominio UAM
+  if (!email.endsWith('@uam.es') && !email.endsWith('@estudiante.uam.es')) {
+    validationErrors.value.email = 'Solo se permiten correos @uam.es o @estudiante.uam.es'
+    return false
+  }
+  
+  // Validar longitud
+  if (email.length > 254) {
+    validationErrors.value.email = 'El email es demasiado largo'
+    return false
+  }
+  
+  // Validar parte local
+  const parteLocal = email.split('@')[0]
+  if (!parteLocal || parteLocal.length < 1) {
+    validationErrors.value.email = 'El email no es válido'
+    return false
+  }
+  
+  if (!/^[a-z0-9._-]+$/.test(parteLocal)) {
+    validationErrors.value.email = 'El email solo puede contener letras, números, puntos, guiones y guiones bajos antes del @'
+    return false
+  }
+  
+  validationErrors.value.email = ''
+  formData.value.email = email
+  return true
+}
+
+function validateTelefono() {
+  const telefono = formData.value.telefono.trim()
+  
+  if (!telefono) {
+    validationErrors.value.telefono = ''
+    return true
+  }
+  
+  // Solo permitir dígitos
+  if (!/^\d+$/.test(telefono)) {
+    validationErrors.value.telefono = 'Solo se permiten números'
+    return false
+  }
+  
+  // Exactamente 9 dígitos
+  if (telefono.length !== 9) {
+    validationErrors.value.telefono = 'Debe tener exactamente 9 dígitos'
+    return false
+  }
+  
+  validationErrors.value.telefono = ''
+  return true
+}
+
+function validatePassword() {
+  const pwd = formData.value.password
+  
+  // Actualizar checks visuales
+  passwordChecks.value.length = pwd.length >= 8 && pwd.length <= 128
+  passwordChecks.value.lowercase = /[a-z]/.test(pwd)
+  passwordChecks.value.uppercase = /[A-Z]/.test(pwd)
+  passwordChecks.value.number = /\d/.test(pwd)
+  passwordChecks.value.special = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/]/.test(pwd)
+  passwordChecks.value.noSpaces = !/\s/.test(pwd)
+  
+  if (!pwd) {
+    validationErrors.value.password = 'La contraseña es requerida'
+    return false
+  }
+  
+  if (pwd.length < 8) {
+    validationErrors.value.password = 'Mínimo 8 caracteres'
+    return false
+  }
+  
+  if (pwd.length > 128) {
+    validationErrors.value.password = 'Máximo 128 caracteres'
+    return false
+  }
+  
+  if (!passwordChecks.value.lowercase) {
+    validationErrors.value.password = 'Debe contener al menos una letra minúscula'
+    return false
+  }
+  
+  if (!passwordChecks.value.uppercase) {
+    validationErrors.value.password = 'Debe contener al menos una letra mayúscula'
+    return false
+  }
+  
+  if (!passwordChecks.value.number) {
+    validationErrors.value.password = 'Debe contener al menos un número'
+    return false
+  }
+  
+  if (!passwordChecks.value.special) {
+    validationErrors.value.password = 'Debe contener al menos un carácter especial (!@#$%...)'
+    return false
+  }
+  
+  if (!passwordChecks.value.noSpaces) {
+    validationErrors.value.password = 'No puede contener espacios'
+    return false
+  }
+  
+  validationErrors.value.password = ''
+  return true
+}
+
+function validatePassword2() {
+  if (!formData.value.password2) {
+    validationErrors.value.password2 = 'Debes confirmar la contraseña'
+    return false
+  }
+  
+  if (formData.value.password !== formData.value.password2) {
+    validationErrors.value.password2 = 'Las contraseñas no coinciden'
+    return false
+  }
+  
+  validationErrors.value.password2 = ''
+  return true
+}
 
 function handleAvatarSave(blob) {
   avatarBlob.value = blob
@@ -158,30 +387,44 @@ async function handleRegister() {
   error.value = ''
   success.value = ''
   
-  // Validar contraseñas
-  if (formData.value.password !== formData.value.password2) {
-    error.value = 'Las contraseñas no coinciden'
-    return
-  }
+  // Validar todos los campos
+  const nombreValid = validateNombre()
+  const emailValid = validateEmail()
+  const telefonoValid = validateTelefono()
+  const passwordValid = validatePassword()
+  const password2Valid = validatePassword2()
   
-  if (formData.value.password.length < 6) {
-    error.value = 'La contraseña debe tener al menos 6 caracteres'
+  if (!nombreValid || !emailValid || !telefonoValid || !passwordValid || !password2Valid) {
+    error.value = 'Por favor, corrige los errores en el formulario'
     return
   }
   
   isLoading.value = true
   
   try {
-    // Registrar usuario
+    // Combinar prefijo + teléfono si está presente
+    const telefonoCompleto = formData.value.telefono 
+      ? `${formData.value.prefijo}${formData.value.telefono}`
+      : ''
+    
+    // Registrar usuario (siempre como ciudadano)
     await authStore.register({
       nombre: formData.value.nombre,
       email: formData.value.email,
-      telefono: formData.value.telefono,
-      rol: formData.value.rol,
+      telefono: telefonoCompleto,
+      rol: 'ciudadano',
       password: formData.value.password
     })
     
-    // Si hay avatar, subirlo después del registro
+    success.value = 'Cuenta creada exitosamente. Iniciando sesión...'
+    
+    // Iniciar sesión automáticamente
+    await authStore.login({
+      email: formData.value.email,
+      password: formData.value.password
+    })
+    
+    // Si hay avatar, subirlo después del login
     if (avatarBlob.value && authStore.user) {
       try {
         const formDataAvatar = new FormData()
@@ -191,16 +434,20 @@ async function handleRegister() {
         await usuarioService.default.updateProfile(authStore.user.id, formDataAvatar)
       } catch (avatarErr) {
         console.error('Error al subir avatar:', avatarErr)
-        // No bloqueamos el registro por error en avatar
+        // No bloqueamos el inicio de sesión por error en avatar
       }
     }
     
-    success.value = 'Cuenta creada exitosamente. Redirigiendo...'
-    
-    // Esperar un momento y redirigir al login
+    // Redirigir según el tipo de usuario
     setTimeout(() => {
-      router.push('/login')
-    }, 2000)
+      if (authStore.user?.tipo === 'admin') {
+        router.push('/admin')
+      } else if (authStore.user?.tipo === 'seguridad') {
+        router.push('/dashboard')
+      } else {
+        router.push('/home')
+      }
+    }, 1500)
   } catch (err) {
     error.value = err.response?.data?.message || 'Error al crear la cuenta'
   } finally {
@@ -610,4 +857,95 @@ select:focus {
 .login-link a:hover::after {
   width: 100%;
 }
+
+/* Validaciones en tiempo real */
+.input-error {
+  border-color: #ff4444 !important;
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.input-error:focus {
+  border-color: #ff4444 !important;
+  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.1);
+}
+
+.error-text {
+  display: block;
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  animation: shake 0.4s;
+}
+
+.password-requirements {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.password-requirements small {
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.req-met {
+  color: #00ff88;
+}
+
+.req-unmet {
+  color: #888;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Grupo de input de teléfono */
+.phone-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.phone-prefix {
+  flex: 0 0 120px;
+  padding: 0.75rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.phone-prefix:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.phone-prefix:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.phone-prefix option {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.phone-input-group input {
+  flex: 1;
+}
 </style>
+

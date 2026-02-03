@@ -100,7 +100,7 @@ onMounted(() => {
 }
 
 .notificaciones-content {
-  padding: 2rem;
+  padding: 3.5rem 2rem 2rem;
   max-width: 900px;
   margin: 0 auto;
   animation: fadeIn 0.4s ease;

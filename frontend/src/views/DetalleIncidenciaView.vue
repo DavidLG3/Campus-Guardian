@@ -527,9 +527,9 @@ const deleteComentario = async () => {
 
 const formatTipoUsuario = (tipo) => {
   const tipos = {
-    'administrador': 'Admin',
-    'operador': 'Operador',
-    'ciudadano': 'Ciudadano'
+    'normal': 'Miembro',
+    'seguridad': 'Personal de Seguridad',
+    'admin': 'Administrador'
   }
   return tipos[tipo] || tipo
 }

@@ -695,4 +695,136 @@ def eliminar_usuario(request, pk):
         )
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def chatbot_view(request):
+    """
+    Endpoint para el chatbot con IA usando Google Gemini API REST.
+    POST /api/chatbot/
+    Espera: { "message": "mensaje del usuario", "history": [...] }
+    """
+    import requests as req
+    from django.conf import settings
+    
+    mensaje_usuario = request.data.get('message')
+    historial = request.data.get('history', [])
+    
+    if not mensaje_usuario:
+        return Response(
+            {"message": "El mensaje es requerido"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Obtener información del usuario
+        user_tipo = request.user.tipo if hasattr(request.user, 'tipo') else 'normal'
+        user_nombre = request.user.nombre if hasattr(request.user, 'nombre') else 'Usuario'
+        
+        # Crear el contexto del sistema con toda la información de la app
+        contexto_sistema = f"""Eres Guardian, asistente de Campus Guardian (app de seguridad universitaria).
 
+APLICACIÓN:
+Campus Guardian permite reportar y gestionar incidencias de seguridad en el campus.
+
+TIPOS DE USUARIO:
+- Normal: Reporta incidencias, ve mapa, recibe notificaciones
+- Seguridad: Gestiona y resuelve incidencias asignadas
+- Admin: Gestión completa de usuarios y sistema
+
+TIPOS DE INCIDENCIAS:
+- Robo: Hurto, sustracción de pertenencias
+- Accidente: Caídas, lesiones, incidentes vehiculares
+- Incendio: Fuego, humo, riesgo de incendio
+- Situación Incómoda: Acoso, hostigamiento
+- Vandalismo: Daños a propiedad, graffiti
+- Estafa: Fraude, engaños
+- Otro: Otras situaciones de seguridad
+
+ESTADOS:
+- Pendiente: Sin asignar
+- En Proceso: Atendiendo
+- Resuelta: Cerrada
+
+MENÚ PRINCIPAL (nombres exactos):
+- Nueva Incidencia (crear reporte con foto/video/ubicación)
+- Ver Incidencias (mapa interactivo del campus)
+- Mis Incidencias (seguimiento de tus reportes)
+- Dashboard (solo seguridad/admin: estadísticas)
+- Notificaciones (actualizaciones de estado)
+- Perfil (editar datos personales)
+
+PROCESO PARA REPORTAR:
+1. Click en "Nueva Incidencia"
+2. Selecciona tipo
+3. Describe lo ocurrido
+4. Marca ubicación en mapa
+5. Adjunta fotos/videos (opcional)
+6. Envía
+
+Usuario actual: {user_tipo} - {user_nombre}
+
+INSTRUCCIONES:
+- Usa los nombres exactos del menú
+- Si es emergencia: recomienda "Nueva Incidencia" + contactar seguridad
+- Estructura tus respuestas con viñetas (•) o numeración cuando sea apropiado
+- Usa saltos de línea para mejor legibilidad
+- Sé completo pero organizado
+- Tono amable y profesional en español"""
+        
+        # Construir el prompt completo con historial
+        prompt_completo = contexto_sistema + "\n\n"
+        
+        # Agregar historial reciente (últimos 6 mensajes)
+        for msg in historial[-6:]:
+            sender = "Usuario" if msg.get("sender") == "user" else "Guardian"
+            texto = msg.get("text", "").replace("<br>", "\n").replace("<strong>", "").replace("</strong>", "")
+            prompt_completo += f"{sender}: {texto}\n"
+        
+        # Agregar mensaje actual
+        prompt_completo += f"Usuario: {mensaje_usuario}\nGuardian:"
+        
+        # Llamar a la API REST de Gemini con el método simplificado
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={settings.GEMINI_API_KEY}"
+        
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt_completo
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0.7,
+                "topP": 0.8
+            }
+        }
+        
+        response = req.post(api_url, json=payload, timeout=30)
+        
+        # Debug: imprimir respuesta si hay error
+        if response.status_code != 200:
+            print(f"Error de API: {response.status_code}")
+            print(f"Respuesta: {response.text}")
+        
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        # Extraer la respuesta del modelo
+        if 'candidates' in result and len(result['candidates']) > 0:
+            respuesta_texto = result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            respuesta_texto = "Lo siento, no pude generar una respuesta. ¿Puedes reformular tu pregunta?"
+        
+        return Response({
+            "response": respuesta_texto,
+            "timestamp": timezone.now().isoformat()
+        })
+        
+    except Exception as e:
+        import traceback
+        print("Error en chatbot:", str(e))
+        print(traceback.format_exc())
+        return Response(
+            {"message": "Lo siento, no puedo conectarme con el servicio de IA en este momento."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
