@@ -755,7 +755,7 @@ Responde en español, conciso. Si emergencia: llamar 112."""
             "generationConfig": {
                 "temperature": 0.5,
                 "topP": 0.8,
-                "maxOutputTokens": 250
+                "maxOutputTokens": 800
             }
         }
         

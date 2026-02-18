@@ -50,17 +50,7 @@
         </div>
       </div>
 
-      <!-- Opciones rápidas -->
-      <div v-if="showQuickOptions" class="quick-options">
-        <button 
-          v-for="option in quickOptions" 
-          :key="option.value"
-          @click="selectOption(option.value)"
-          class="quick-option-btn"
-        >
-          {{ option.label }}
-        </button>
-      </div>
+
 
       <!-- Input -->
       <div class="chat-input">
@@ -95,23 +85,6 @@ const userInput = ref('')
 const messages = ref([])
 const isTyping = ref(false)
 const messagesContainer = ref(null)
-const showQuickOptions = ref(false)
-const currentContext = ref('initial') // initial, funcionalidades, clasificacion
-
-const quickOptions = ref([
-  { label: 'Ayuda con funcionalidades', value: 'funcionalidades', icon: 'mobile-screen' },
-  { label: '🏷️ Clasificar incidencia', value: 'clasificacion' }
-])
-
-const tiposIncidencia = [
-  { value: 'robo', label: 'Robo', desc: 'Sustracción de pertenencias' },
-  { value: 'accidente', label: 'Accidente', desc: 'Incidente vehicular o lesión' },
-  { value: 'incendio', label: 'Incendio', desc: 'Fuego o humo' },
-  { value: 'vandalismo', label: 'Vandalismo', desc: 'Daño a propiedad' },
-  { value: 'situacion_incomoda', label: 'Situación Incómoda', desc: 'Acoso o comportamiento inapropiado' },
-  { value: 'estafa', label: 'Estafa', desc: 'Fraude o engaño' },
-  { value: 'otro', label: 'Otro', desc: 'Otro tipo de incidencia' }
-]
 
 function toggleChat() {
   isOpen.value = !isOpen.value
@@ -131,9 +104,6 @@ function initializeChat() {
     `¡Hola, ${userName}! 👋<br><br>Soy <strong>El Guardián</strong>, tu asistente virtual con inteligencia artificial.<br><br>¿En qué puedo ayudarte hoy?`,
     'guardian'
   )
-  
-  showQuickOptions.value = true
-  currentContext.value = 'initial'
 }
 
 function addMessage(text, sender = 'user') {
@@ -155,18 +125,6 @@ function scrollToBottom() {
   }
 }
 
-async function selectOption(option) {
-  showQuickOptions.value = false
-  
-  if (option === 'funcionalidades') {
-    userInput.value = 'Ayúdame con las funcionalidades de la app'
-    await sendMessage()
-  } else if (option === 'clasificacion') {
-    userInput.value = 'Necesito ayuda para clasificar una incidencia'
-    await sendMessage()
-  }
-}
-
 async function sendMessage() {
   if (!userInput.value.trim() || isTyping.value) return
   
@@ -176,8 +134,8 @@ async function sendMessage() {
   // Agregar mensaje del usuario
   addMessage(message, 'user')
   
-  // Simular escritura
-  await simulateTyping()
+  // Mostrar indicador de escritura durante toda la petición
+  isTyping.value = true
   
   try {
     // Preparar historial para enviar a la API
@@ -217,13 +175,10 @@ async function sendMessage() {
     }
     
     addMessage(fallbackResponse, 'guardian')
+  } finally {
+    // Ocultar indicador de escritura al terminar (éxito o error)
+    isTyping.value = false
   }
-}
-
-async function simulateTyping() {
-  isTyping.value = true
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000))
-  isTyping.value = false
 }
 
 onMounted(() => {
