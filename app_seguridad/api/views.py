@@ -720,64 +720,24 @@ def chatbot_view(request):
         user_tipo = request.user.tipo if hasattr(request.user, 'tipo') else 'normal'
         user_nombre = request.user.nombre if hasattr(request.user, 'nombre') else 'Usuario'
         
-        # Crear el contexto del sistema con toda la información de la app
-        contexto_sistema = f"""Eres Guardian, asistente de Campus Guardian (app de seguridad universitaria).
+        # Contexto del sistema simplificado para reducir tokens y tiempo de respuesta
+        contexto_sistema = f"""Eres El Guardián de Campus Guardian (app seguridad UAM).
 
-APLICACIÓN:
-Campus Guardian permite reportar y gestionar incidencias de seguridad en el campus.
+TIPOS: 🔵Normal (reporta) 🛡️Seguridad (gestiona) 👑Admin (administra)
+INCIDENCIAS: Robo, Accidente, Incendio, Situación Incómoda, Vandalismo, Estafa, Otro
+ESTADOS: Pendiente → En Proceso → Resuelta
+MENÚ: Nueva Incidencia | Ver Incidencias | Mis Incidencias | Dashboard | Notificaciones | Perfil
 
-TIPOS DE USUARIO:
-- Normal: Reporta incidencias, ve mapa, recibe notificaciones
-- Seguridad: Gestiona y resuelve incidencias asignadas
-- Admin: Gestión completa de usuarios y sistema
-
-TIPOS DE INCIDENCIAS:
-- Robo: Hurto, sustracción de pertenencias
-- Accidente: Caídas, lesiones, incidentes vehiculares
-- Incendio: Fuego, humo, riesgo de incendio
-- Situación Incómoda: Acoso, hostigamiento
-- Vandalismo: Daños a propiedad, graffiti
-- Estafa: Fraude, engaños
-- Otro: Otras situaciones de seguridad
-
-ESTADOS:
-- Pendiente: Sin asignar
-- En Proceso: Atendiendo
-- Resuelta: Cerrada
-
-MENÚ PRINCIPAL (nombres exactos):
-- Nueva Incidencia (crear reporte con foto/video/ubicación)
-- Ver Incidencias (mapa interactivo del campus)
-- Mis Incidencias (seguimiento de tus reportes)
-- Dashboard (solo seguridad/admin: estadísticas)
-- Notificaciones (actualizaciones de estado)
-- Perfil (editar datos personales)
-
-PROCESO PARA REPORTAR:
-1. Click en "Nueva Incidencia"
-2. Selecciona tipo
-3. Describe lo ocurrido
-4. Marca ubicación en mapa
-5. Adjunta fotos/videos (opcional)
-6. Envía
-
-Usuario actual: {user_tipo} - {user_nombre}
-
-INSTRUCCIONES:
-- Usa los nombres exactos del menú
-- Si es emergencia: recomienda "Nueva Incidencia" + contactar seguridad
-- Estructura tus respuestas con viñetas (•) o numeración cuando sea apropiado
-- Usa saltos de línea para mejor legibilidad
-- Sé completo pero organizado
-- Tono amable y profesional en español"""
+Usuario: {user_tipo} ({user_nombre})
+Responde en español, conciso. Si emergencia: llamar 112."""
         
-        # Construir el prompt completo con historial
+        # Construir el prompt completo con historial MUY limitado
         prompt_completo = contexto_sistema + "\n\n"
         
-        # Agregar historial reciente (últimos 6 mensajes)
-        for msg in historial[-6:]:
-            sender = "Usuario" if msg.get("sender") == "user" else "Guardian"
-            texto = msg.get("text", "").replace("<br>", "\n").replace("<strong>", "").replace("</strong>", "")
+        # Agregar historial reciente (solo últimos 2 mensajes)
+        for msg in historial[-2:]:
+            sender = "U" if msg.get("sender") == "user" else "G"
+            texto = msg.get("text", "").replace("<br>", " ").replace("<strong>", "").replace("</strong>", "")[:100]  # Limitar a 100 caracteres
             prompt_completo += f"{sender}: {texto}\n"
         
         # Agregar mensaje actual
@@ -794,30 +754,20 @@ INSTRUCCIONES:
             }],
             "generationConfig": {
                 "temperature": 0.7,
-                "topP": 0.8
+                "topP": 0.8,
+                "maxOutputTokens": 300  # Limitar respuestas para ser más rápido
             }
         }
         
-        # Intentar con reintentos para manejar timeouts
-        max_intentos = 2
-        for intento in range(max_intentos):
-            try:
-                response = req.post(api_url, json=payload, timeout=60)
-                
-                # Debug: imprimir respuesta si hay error
-                if response.status_code != 200:
-                    print(f"Error de API: {response.status_code}")
-                    print(f"Respuesta: {response.text}")
-                
-                response.raise_for_status()
-                break  # Si tiene éxito, salir del bucle
-                
-            except req.exceptions.Timeout:
-                print(f"Timeout en intento {intento + 1}/{max_intentos}")
-                if intento == max_intentos - 1:  # Último intento
-                    raise
-                import time
-                time.sleep(2)  # Esperar 2 segundos antes de reintentar
+        # Llamada simple sin reintentos (para ser más rápido)
+        response = req.post(api_url, json=payload, timeout=20)  # Timeout reducido a 20s
+        
+        # Debug: imprimir respuesta si hay error
+        if response.status_code != 200:
+            print(f"Error de API: {response.status_code}")
+            print(f"Respuesta: {response.text}")
+        
+        response.raise_for_status()
         
         result = response.json()
         
@@ -833,9 +783,9 @@ INSTRUCCIONES:
         })
         
     except req.exceptions.Timeout:
-        print("Error: Timeout al conectar con Gemini API después de varios intentos")
+        print("Error: Timeout al conectar con Gemini API")
         return Response(
-            {"message": "El servicio de IA está tardando demasiado en responder. Por favor, intenta con una pregunta más corta o espera un momento."},
+            {"message": "El servicio de IA está tardando demasiado. Intenta con una pregunta más simple."},
             status=status.HTTP_504_GATEWAY_TIMEOUT
         )
     except Exception as e:
