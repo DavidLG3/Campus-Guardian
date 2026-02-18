@@ -798,14 +798,26 @@ INSTRUCCIONES:
             }
         }
         
-        response = req.post(api_url, json=payload, timeout=30)
-        
-        # Debug: imprimir respuesta si hay error
-        if response.status_code != 200:
-            print(f"Error de API: {response.status_code}")
-            print(f"Respuesta: {response.text}")
-        
-        response.raise_for_status()
+        # Intentar con reintentos para manejar timeouts
+        max_intentos = 2
+        for intento in range(max_intentos):
+            try:
+                response = req.post(api_url, json=payload, timeout=60)
+                
+                # Debug: imprimir respuesta si hay error
+                if response.status_code != 200:
+                    print(f"Error de API: {response.status_code}")
+                    print(f"Respuesta: {response.text}")
+                
+                response.raise_for_status()
+                break  # Si tiene éxito, salir del bucle
+                
+            except req.exceptions.Timeout:
+                print(f"Timeout en intento {intento + 1}/{max_intentos}")
+                if intento == max_intentos - 1:  # Último intento
+                    raise
+                import time
+                time.sleep(2)  # Esperar 2 segundos antes de reintentar
         
         result = response.json()
         
@@ -820,6 +832,12 @@ INSTRUCCIONES:
             "timestamp": timezone.now().isoformat()
         })
         
+    except req.exceptions.Timeout:
+        print("Error: Timeout al conectar con Gemini API después de varios intentos")
+        return Response(
+            {"message": "El servicio de IA está tardando demasiado en responder. Por favor, intenta con una pregunta más corta o espera un momento."},
+            status=status.HTTP_504_GATEWAY_TIMEOUT
+        )
     except Exception as e:
         import traceback
         print("Error en chatbot:", str(e))
