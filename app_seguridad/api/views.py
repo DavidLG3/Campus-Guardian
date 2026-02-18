@@ -743,8 +743,8 @@ Responde en español, conciso. Si emergencia: llamar 112."""
         # Agregar mensaje actual
         prompt_completo += f"Usuario: {mensaje_usuario}\nGuardian:"
         
-        # Llamar a la API REST de Gemini con el método simplificado
-        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={settings.GEMINI_API_KEY}"
+        # Llamar a la API REST de Gemini con modelo más rápido
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
         
         payload = {
             "contents": [{
@@ -753,14 +753,14 @@ Responde en español, conciso. Si emergencia: llamar 112."""
                 }]
             }],
             "generationConfig": {
-                "temperature": 0.7,
+                "temperature": 0.5,  # Reducido para respuestas más directas
                 "topP": 0.8,
-                "maxOutputTokens": 300  # Limitar respuestas para ser más rápido
+                "maxOutputTokens": 250  # Aún más corto
             }
         }
         
-        # Llamada simple sin reintentos (para ser más rápido)
-        response = req.post(api_url, json=payload, timeout=20)  # Timeout reducido a 20s
+        # Llamada simple con timeout aumentado
+        response = req.post(api_url, json=payload, timeout=25)
         
         # Debug: imprimir respuesta si hay error
         if response.status_code != 200:

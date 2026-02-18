@@ -199,10 +199,24 @@ async function sendMessage() {
     
   } catch (error) {
     console.error('Error al comunicarse con el chatbot:', error)
-    addMessage(
-      'Lo siento, he tenido un problema al procesar tu mensaje. Por favor, intenta de nuevo.',
-      'guardian'
-    )
+    
+    // Intentar dar una respuesta útil basada en palabras clave
+    let fallbackResponse = 'Lo siento, el servicio de IA no está disponible en este momento. '
+    
+    const messageLower = message.toLowerCase()
+    if (messageLower.includes('reportar') || messageLower.includes('incidencia') || messageLower.includes('crear')) {
+      fallbackResponse += 'Para reportar una incidencia, ve al menú "Nueva Incidencia" en la parte superior.'
+    } else if (messageLower.includes('mapa') || messageLower.includes('ubicación') || messageLower.includes('donde')) {
+      fallbackResponse += 'Puedes ver el mapa de incidencias en el menú "Ver Incidencias".'
+    } else if (messageLower.includes('estado') || messageLower.includes('seguimiento') || messageLower.includes('mis incidencias')) {
+      fallbackResponse += 'Revisa el estado de tus reportes en el menú "Mis Incidencias".'
+    } else if (messageLower.includes('perfil') || messageLower.includes('editar') || messageLower.includes('cambiar')) {
+      fallbackResponse += 'Puedes editar tu perfil en el menú "Perfil".'
+    } else {
+      fallbackResponse += 'Explora el menú principal para conocer todas las funciones de Campus Guardian.'
+    }
+    
+    addMessage(fallbackResponse, 'guardian')
   }
 }
 
