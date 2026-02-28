@@ -1,0 +1,91 @@
+{
+  "testUsers": {
+    "admin": {
+      "username": "test_admin",
+      "email": "test_admin@uam.es",
+      "password": "Admin123!",
+      "tipo": "admin"
+    },
+    "operador": {
+      "username": "test_operador",
+      "email": "test_operador@uam.es",
+      "password": "Operador123!",
+      "tipo": "seguridad"
+    },
+    "ciudadano": {
+      "username": "test_ciudadano",
+      "email": "test_ciudadano@estudiante.uam.es",
+      "password": "Ciudadano123!",
+      "tipo": "normal"
+    }
+  },
+  "newUser": {
+    "nombre": "Usuario de Prueba",
+    "email": "usuario_prueba@estudiante.uam.es",
+    "username": "usuarioprueba",
+    "password": "Prueba123!",
+    "telefono": "612345678"
+  },
+  "incidencias": {
+    "robo": {
+      "titulo": "Robo en biblioteca",
+      "descripcion": "Se ha reportado el robo de una mochila en la biblioteca central",
+      "tipo": "Robo",
+      "latitud": "40.5472",
+      "longitud": "-3.6878"
+    },
+    "accidente": {
+      "titulo": "Accidente en laboratorio",
+      "descripcion": "Derrame de líquido químico en el laboratorio 204",
+      "tipo": "Accidente",
+      "latitud": "40.5475",
+      "longitud": "-3.6880"
+    },
+    "vandalismo": {
+      "titulo": "Graffiti en pared",
+      "descripcion": "Se ha pintado graffiti en la pared del edificio principal",
+      "tipo": "Vandalismo",
+      "latitud": "40.5470",
+      "longitud": "-3.6875"
+    }
+  },
+  "alertas": {
+    "alta": {
+      "mensaje": "Alerta de seguridad crítica",
+      "nivel": "alta",
+      "descripcion": "Situación que requiere atención inmediata"
+    },
+    "media": {
+      "mensaje": "Precaución en la zona norte",
+      "nivel": "media",
+      "descripcion": "Reportes de actividad sospechosa"
+    },
+    "baja": {
+      "mensaje": "Mantenimiento programado",
+      "nivel": "baja",
+      "descripcion": "Se realizará mantenimiento en el área de deportes"
+    }
+  },
+  "comentarios": {
+    "general": "Este es un comentario de prueba creado por Cypress",
+    "seguimiento": "Se está dando seguimiento al caso",
+    "resolucion": "El problema ha sido resuelto satisfactoriamente"
+  },
+  "coordenadas": {
+    "uam_principal": {
+      "latitud": 40.5472,
+      "longitud": -3.6878,
+      "nombre": "Campus UAM Principal"
+    },
+    "biblioteca": {
+      "latitud": 40.5475,
+      "longitud": -3.6880,
+      "nombre": "Biblioteca Central"
+    },
+    "deportes": {
+      "latitud": 40.5470,
+      "longitud": -3.6875,
+      "nombre": "Instalaciones Deportivas"
+    }
+  }
+}
