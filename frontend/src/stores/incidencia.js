@@ -1,3 +1,4 @@
+// incidencia.js: core module for Campus Guardian frontend.
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import incidenciaService from '@/services/incidenciaService'

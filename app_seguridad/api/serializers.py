@@ -1,3 +1,4 @@
+"""serializers.py module: backend logic for Campus Guardian."""
 from rest_framework import serializers
 from app_models.models import Usuario, Incidencia, Alerta, Notificacion, ArchivoIncidencia, Comentario
 

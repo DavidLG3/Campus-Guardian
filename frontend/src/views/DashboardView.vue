@@ -7,22 +7,22 @@
         <section class="acciones-rapidas">
           <div class="actions-grid">
             <router-link to="/incidencias/nueva" class="action-card">
-              <div class="action-icon">➕</div>
+              <img class="action-icon" src="/icons/dashboard/nuevaincidencia.png" alt="" loading="lazy" decoding="async" />
               <span>Nueva Incidencia</span>
             </router-link>
             
             <router-link to="/mapa" class="action-card">
-              <div class="action-icon">🗺️</div>
+              <img class="action-icon" src="/icons/dashboard/mapa.png" alt="" loading="lazy" decoding="async" />
               <span>Ver Mapa</span>
             </router-link>
             
             <router-link to="/mis-incidencias" class="action-card">
-              <div class="action-icon">📋</div>
+              <img class="action-icon" src="/icons/dashboard/lista-de-quehaceres.png" alt="" loading="lazy" decoding="async" />
               <span>Mis Incidencias</span>
             </router-link>
             
             <router-link to="/notificaciones" class="action-card">
-              <div class="action-icon">🔔</div>
+              <img class="action-icon" src="/icons/dashboard/notificacion.png" alt="" loading="lazy" decoding="async" />
               <span>Notificaciones</span>
             </router-link>
           </div>
@@ -341,7 +341,7 @@ onMounted(async () => {
 }
 
 .dashboard-content {
-  padding: 3.5rem 1rem 2rem;
+  padding: 1rem 1rem 2rem;
   max-width: 600px;
   margin: 0 auto;
   background: #000;
@@ -397,7 +397,10 @@ section {
 }
 
 .action-icon {
-  font-size: 24px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
 }
 
 /* Incidencias */

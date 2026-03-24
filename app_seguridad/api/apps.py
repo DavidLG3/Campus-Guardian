@@ -1,3 +1,4 @@
+"""apps.py module: backend logic for Campus Guardian."""
 from django.apps import AppConfig
 
 

@@ -1,3 +1,4 @@
+// main.js: core module for Campus Guardian frontend.
 import './assets/main.css'
 
 import { createApp } from 'vue'

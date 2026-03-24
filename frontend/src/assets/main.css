@@ -190,3 +190,10 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-dark);
 }
+
+/* Keep Leaflet controls under the fixed app navbar */
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: 900 !important;
+}

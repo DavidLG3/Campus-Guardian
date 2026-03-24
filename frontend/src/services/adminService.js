@@ -1,3 +1,4 @@
+// adminService.js: core module for Campus Guardian frontend.
 import api from '@/config/api'
 
 const adminService = {

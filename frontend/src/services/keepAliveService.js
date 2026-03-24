@@ -1,3 +1,4 @@
+// keepAliveService.js: core module for Campus Guardian frontend.
 import api from '@/config/api'
 
 class KeepAliveService {

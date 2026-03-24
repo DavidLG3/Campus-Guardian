@@ -1,3 +1,4 @@
+"""__init__.py module: backend logic for Campus Guardian."""
 from .usuario import Usuario
 from .incidencia import Incidencia
 from .alerta import Alerta

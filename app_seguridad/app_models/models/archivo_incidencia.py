@@ -1,3 +1,4 @@
+"""archivo_incidencia.py module: backend logic for Campus Guardian."""
 from django.db import models
 from .incidencia import Incidencia
 

@@ -1,3 +1,4 @@
+// counter.js: core module for Campus Guardian frontend.
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 

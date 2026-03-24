@@ -315,7 +315,7 @@ async function handleSubmit() {
 }
 
 .nueva-incidencia-content {
-  padding: 2rem;
+  padding: 2.5rem 2rem 2rem;
   max-width: 800px;
   margin: 0 auto;
   animation: fadeIn 0.4s ease;
@@ -343,6 +343,10 @@ h1 {
 
 .form-group {
   margin-bottom: 2rem;
+}
+
+.form-group:last-of-type {
+  margin-bottom: 1rem;
 }
 
 .form-row {
@@ -479,8 +483,8 @@ textarea {
   display: flex;
   gap: 1.5rem;
   justify-content: flex-end;
-  margin-top: 3rem;
-  padding-top: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -548,7 +552,7 @@ textarea {
 /* Responsive Design */
 @media (max-width: 768px) {
   .nueva-incidencia-content {
-    padding: 1rem;
+    padding: 1.5rem 1rem 1rem;
   }
 
   h1 {
@@ -570,7 +574,7 @@ textarea {
 
 @media (max-width: 480px) {
   .nueva-incidencia-content {
-    padding: 0.75rem;
+    padding: 1.25rem 0.75rem 0.75rem;
   }
 
   h1 {

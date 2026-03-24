@@ -1,3 +1,4 @@
+"""admin.py module: backend logic for Campus Guardian."""
 from django.contrib import admin
 from .models import Usuario
 from .models import Alerta

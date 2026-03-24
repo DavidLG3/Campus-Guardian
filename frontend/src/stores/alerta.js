@@ -1,3 +1,4 @@
+// alerta.js: core module for Campus Guardian frontend.
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import alertaService from '@/services/alertaService'

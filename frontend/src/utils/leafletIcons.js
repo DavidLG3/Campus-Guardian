@@ -1,3 +1,4 @@
+// leafletIcons.js: core module for Campus Guardian frontend.
 import L from 'leaflet'
 
 // Fix para los iconos por defecto de Leaflet en producción

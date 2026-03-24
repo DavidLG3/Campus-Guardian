@@ -1,3 +1,4 @@
+// incidenciaService.js: core module for Campus Guardian frontend.
 import apiClient from '@/config/api'
 
 export default {

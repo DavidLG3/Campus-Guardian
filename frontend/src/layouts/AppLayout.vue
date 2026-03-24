@@ -301,6 +301,7 @@ onUnmounted(() => {
 
 <style scoped>
 .app-layout {
+  --navbar-offset: 106px;
   min-height: 100vh;
   width: 100%;
   max-width: 100vw;
@@ -761,9 +762,15 @@ onUnmounted(() => {
   max-width: 100vw;
   margin: 0;
   padding: 0;
-  margin-top: 66px; /* Altura del navbar */
+  padding-top: calc(var(--navbar-offset) + env(safe-area-inset-top, 0px));
   overflow-x: hidden;
   animation: fadeIn 0.5s ease;
+}
+
+@media (min-width: 768px) {
+  .app-layout {
+    --navbar-offset: 98px;
+  }
 }
 
 @keyframes fadeIn {

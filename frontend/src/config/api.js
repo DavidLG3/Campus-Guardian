@@ -1,3 +1,4 @@
+// api.js: core module for Campus Guardian frontend.
 import axios from 'axios'
 
 // URL base del backend Django

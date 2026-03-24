@@ -1,3 +1,4 @@
+// notificacion.js: core module for Campus Guardian frontend.
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import notificacionService from '@/services/notificacionService'

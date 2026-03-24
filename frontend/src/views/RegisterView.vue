@@ -445,7 +445,7 @@ async function handleRegister() {
       } else if (authStore.user?.tipo === 'seguridad') {
         router.push('/dashboard')
       } else {
-        router.push('/home')
+        router.push('/dashboard')
       }
     }, 1500)
   } catch (err) {

@@ -1,3 +1,4 @@
+// index.js: core module for Campus Guardian frontend.
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 

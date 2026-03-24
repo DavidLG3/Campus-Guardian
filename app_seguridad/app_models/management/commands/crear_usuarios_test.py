@@ -1,3 +1,4 @@
+"""crear_usuarios_test.py module: backend logic for Campus Guardian."""
 from django.core.management.base import BaseCommand
 from app_models.models import Usuario
 

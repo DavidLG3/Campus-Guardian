@@ -1,3 +1,4 @@
+"""signals.py module: backend logic for Campus Guardian."""
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from .models import Incidencia, Usuario, Alerta, Notificacion

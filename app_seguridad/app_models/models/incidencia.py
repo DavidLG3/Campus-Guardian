@@ -1,3 +1,4 @@
+"""incidencia.py module: backend logic for Campus Guardian."""
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import datetime

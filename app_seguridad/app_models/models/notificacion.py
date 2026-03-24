@@ -1,3 +1,4 @@
+"""notificacion.py module: backend logic for Campus Guardian."""
 from django.db import models
 from .usuario import Usuario
 from .incidencia import Incidencia
