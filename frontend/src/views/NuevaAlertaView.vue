@@ -103,11 +103,13 @@ const error = ref('')
 const success = ref('')
 
 async function handleSubmit() {
+  // Reset UI feedback before each submit attempt.
   error.value = ''
   success.value = ''
   isLoading.value = true
   
   try {
+    // Build request payload with required fields.
     const data = {
       tipo: formData.value.tipo,
       nivel: formData.value.nivel,
@@ -116,14 +118,17 @@ async function handleSubmit() {
     }
     
     if (formData.value.ubicacion) {
+      // Include optional location only when provided by the user.
       data.ubicacion = formData.value.ubicacion
     }
     
+    // Persist the new alert through the Pinia store action.
     await alertaStore.create(data)
     
     success.value = 'Alerta creada exitosamente. Redirigiendo...'
     
     setTimeout(() => {
+      // Give users a short confirmation window before navigation.
       router.push('/alertas')
     }, 2000)
   } catch (err) {

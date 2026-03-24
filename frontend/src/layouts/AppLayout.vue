@@ -2,7 +2,7 @@
   <div class="app-layout">
     <nav class="navbar">
       <div class="nav-content">
-        <!-- Logo/Brand -->
+        <!-- Logo and brand -->
         <div class="nav-brand">
           <router-link :to="authStore.isAdmin ? '/admin' : '/dashboard'">
             <img src="@/assets/logo_blanco.png" alt="Logo" class="app-logo" />
@@ -10,7 +10,7 @@
           </router-link>
         </div>
         
-        <!-- Notification Bell (solo ciudadanos) -->
+        <!-- Notification bell (citizens only) -->
         <router-link 
           v-if="authStore.isCiudadano" 
           to="/notificaciones"
@@ -23,7 +23,7 @@
           <span v-if="notificacionesNoLeidas > 0" class="badge">{{ notificacionesNoLeidas }}</span>
         </router-link>
         
-        <!-- Hamburger Menu Button -->
+        <!-- Hamburger menu button -->
         <button @click="toggleMenu" class="hamburger-btn" :class="{ active: menuOpen }">
           <span></span>
           <span></span>
@@ -32,11 +32,11 @@
       </div>
     </nav>
     
-    <!-- Fullscreen Mobile Menu -->
+    <!-- Full screen mobile menu -->
     <transition name="slide">
       <div v-if="menuOpen" class="mobile-menu" @click.self="closeMenu">
         <div class="mobile-menu-content">
-          <!-- User Info Section -->
+          <!-- User information section -->
           <div class="menu-header">
             <div class="user-avatar">
               <img v-if="authStore.user?.foto_perfil_url" :src="authStore.user.foto_perfil_url" alt="Avatar" class="avatar-image" />
@@ -53,7 +53,7 @@
           
           <div class="menu-divider"></div>
           
-          <!-- Navigation Links -->
+          <!-- Navigation menu links -->
           <nav class="menu-nav">
             <router-link :to="authStore.isAdmin ? '/admin' : '/dashboard'" @click="closeMenu" class="menu-link">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -144,7 +144,7 @@
           
           <div class="menu-divider"></div>
           
-          <!-- Action Buttons -->
+          <!-- Action buttons section -->
           <div class="menu-actions">
             <button @click="handleEditProfile" class="menu-action-btn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -171,7 +171,7 @@
       <slot />
     </main>
     
-    <!-- Chatbot Guardian -->
+    <!-- Chatbot Guardian component -->
     <ChatbotGuardian />
   </div>
 </template>
@@ -208,14 +208,14 @@ const notificacionesNoLeidas = computed(() => {
   }
 })
 
-// Intervalo para polling de alertas/notificaciones
+  // Polling interval for alerts/notifications
 let pollingInterval = null
 
 const startPolling = () => {
-  // Consultar cada 3 segundos para actualizaciones casi en tiempo real
+  // Query every 3 seconds for near real-time updates
   pollingInterval = setInterval(() => {
     if (authStore.isAuthenticated) {
-      // Solo hacer polling de alertas si NO estamos en la vista de alertas
+      // Only poll alerts if NOT in the alerts view
       if (authStore.isAdmin || authStore.isOperador) {
         if (router.currentRoute.value.path !== '/alertas') {
           alertaStore.fetchAll().catch(err => {
@@ -223,7 +223,7 @@ const startPolling = () => {
           })
         }
       }
-      // Solo hacer polling de notificaciones si NO estamos en la vista de notificaciones
+      // Only poll notifications if NOT in the notifications view
       if (authStore.isCiudadano) {
         if (router.currentRoute.value.path !== '/notificaciones') {
           notificacionStore.fetchAll().catch(err => {
@@ -232,7 +232,7 @@ const startPolling = () => {
         }
       }
     }
-  }, 3000) // 3 segundos
+  }, 3000) // 3 seconds
 }
 
 const stopPolling = () => {
@@ -279,22 +279,22 @@ onMounted(() => {
   if (authStore.isAuthenticated) {
     if (authStore.isAdmin || authStore.isOperador) {
       alertaStore.fetchAll().catch(err => {
-        console.error('Error cargando alertas en AppLayout:', err)
+        console.error('Error loading alerts in AppLayout:', err)
       })
     }
     if (authStore.isCiudadano) {
       notificacionStore.fetchAll().catch(err => {
-        console.error('Error cargando notificaciones en AppLayout:', err)
+        console.error('Error loading notifications in AppLayout:', err)
       })
     }
     
-    // Iniciar polling para actualizaciones en tiempo real
+    // Start polling for real-time updates
     startPolling()
   }
 })
 
 onUnmounted(() => {
-  // Limpiar el intervalo al desmontar el componente
+  // Clean up interval when component is unmounted
   stopPolling()
 })
 </script>

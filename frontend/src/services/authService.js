@@ -2,7 +2,7 @@
 import apiClient from '@/config/api'
 
 export default {
-  // Autenticación
+  // Authentication
   login(credentials) {
     return apiClient.post('/auth/login/', credentials)
   },

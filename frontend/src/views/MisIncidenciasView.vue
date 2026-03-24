@@ -96,24 +96,29 @@ const filtroEstado = ref('')
 const isLoading = ref(false)
 const error = ref('')
 
+// Build the list shown in the UI based on user ownership and active filters.
 const incidenciasFiltradas = computed(() => {
   let filtered = incidenciaStore.incidencias.filter(inc => {
-    // Solo mostrar incidencias del usuario actual
+    // Only show issues for the current user
     return inc.usuario === authStore.user?.id
   })
   
   if (filtroTipo.value) {
+    // Apply type filter when a value is selected.
     filtered = filtered.filter(i => i.tipo === filtroTipo.value)
   }
   
   if (filtroEstado.value) {
+    // Apply status filter when a value is selected.
     filtered = filtered.filter(i => i.estado === filtroEstado.value)
   }
   
+  // Show newest reports first.
   return filtered.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
 })
 
 function formatEstado(estado) {
+  // Convert backend status keys into readable labels.
   const estados = {
     'abierta': 'Abierta',
     'en_progreso': 'En Progreso',
@@ -124,6 +129,7 @@ function formatEstado(estado) {
 }
 
 function formatTipo(tipo) {
+  // Convert backend type keys into readable labels.
   const tipos = {
     'robo': 'Robo',
     'accidente': 'Accidente',
@@ -137,6 +143,7 @@ function formatTipo(tipo) {
 }
 
 function formatDate(dateString) {
+  // Format timestamps for display in the Spanish locale.
   const date = new Date(dateString)
   return date.toLocaleDateString('es-ES', {
     day: 'numeric',
@@ -152,6 +159,7 @@ onMounted(async () => {
   error.value = ''
   
   try {
+    // Fetch incidents once when the page loads.
     await incidenciaStore.fetchAll()
   } catch (err) {
     console.error('Error al cargar mis incidencias:', err)

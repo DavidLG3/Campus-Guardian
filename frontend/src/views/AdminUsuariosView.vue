@@ -8,7 +8,7 @@
         </router-link>
       </div>
 
-      <!-- Buscador y Filtros -->
+      <!-- Searcher and filters -->
       <div class="search-filters">
         <input
           v-model="searchQuery"
@@ -26,12 +26,12 @@
       <!-- Loading -->
       <div v-if="isLoading" class="loading">Cargando usuarios...</div>
 
-      <!-- Mensaje de error -->
+      <!-- Error message -->
       <div v-else-if="error" class="error">{{ error }}</div>
 
-      <!-- Lista de Usuarios -->
+      <!-- User list -->
       <div v-else class="usuarios-container">
-        <!-- Miembros -->
+        <!-- Members -->
         <section v-if="usuariosNormalesFiltrados.length > 0" class="usuarios-section">
           <h2>👤 Miembros ({{ usuariosNormalesFiltrados.length }})</h2>
           <div class="usuarios-grid">
@@ -61,7 +61,7 @@
           </div>
         </section>
 
-        <!-- Usuarios de Seguridad -->
+        <!-- Security users -->
         <section v-if="usuariosSeguridadFiltrados.length > 0" class="usuarios-section">
           <h2>🛡️ Personal de Seguridad ({{ usuariosSeguridadFiltrados.length }})</h2>
           <div class="usuarios-grid">
@@ -91,7 +91,7 @@
           </div>
         </section>
 
-        <!-- Sin resultados -->
+        <!-- 0 results -->
         <div v-if="usuariosFiltrados.length === 0" class="empty">
           No se encontraron usuarios
         </div>
@@ -118,12 +118,11 @@ const error = ref(null)
 const usuariosFiltrados = computed(() => {
   let filtered = usuarios.value
 
-  // Filtrar por tipo
+  // Search by type
   if (filtroTipo.value) {
     filtered = filtered.filter(u => u.tipo === filtroTipo.value)
   }
 
-  // Filtrar por búsqueda (local, ya que el backend también filtra)
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(u => 
@@ -180,12 +179,11 @@ async function eliminarUsuario(usuario) {
   }
 }
 
-// Watch para recargar cuando cambie el filtro
+// Watch to reload after filter change
 watch([filtroTipo], () => {
   cargarUsuarios()
 })
 
-// Montar componente
 onMounted(() => {
   cargarUsuarios()
 })

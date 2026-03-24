@@ -66,7 +66,7 @@ Cypress.Commands.add('logout', () => {
     } else {
       // Si no existe, limpiar localStorage manualmente
       cy.clearLocalStorage()
-      cy.visit('/login')
+      cy.visit('/')
     }
   })
 })

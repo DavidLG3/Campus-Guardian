@@ -3,7 +3,7 @@ import apiClient from '@/config/api'
 
 export default {
   /**
-   * Obtener comentarios de una incidencia
+   * Get comments from an incident
    */
   getComentariosByIncidencia(incidenciaId) {
     return apiClient.get(`/comentarios/`, {
@@ -12,14 +12,14 @@ export default {
   },
 
   /**
-   * Crear un nuevo comentario
+   * Create a new comment
    */
   createComentario(data) {
     return apiClient.post('/comentarios/', data)
   },
 
   /**
-   * Eliminar un comentario (solo el autor o admin)
+   * Delete a comment (only author or admin)
    */
   deleteComentario(id) {
     return apiClient.delete(`/comentarios/${id}/`)

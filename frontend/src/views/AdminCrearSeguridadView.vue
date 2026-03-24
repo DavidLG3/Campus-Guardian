@@ -139,7 +139,7 @@ async function handleSubmit() {
   error.value = null
   success.value = null
 
-  // Validaciones
+  // Validations
   if (formData.value.password !== formData.value.password2) {
     error.value = 'Las contraseñas no coinciden'
     return
@@ -156,7 +156,7 @@ async function handleSubmit() {
     const response = await adminService.crearUsuarioSeguridad(formData.value)
     success.value = 'Usuario de seguridad creado exitosamente'
     
-    // Limpiar formulario
+    // Clean formulary
     formData.value = {
       username: '',
       email: '',
@@ -167,7 +167,7 @@ async function handleSubmit() {
       telefono: ''
     }
 
-    // Redirigir después de 2 segundos
+    // Redirect after 2 seconds
     setTimeout(() => {
       router.push('/admin/usuarios')
     }, 2000)

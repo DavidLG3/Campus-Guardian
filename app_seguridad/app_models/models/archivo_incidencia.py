@@ -4,7 +4,7 @@ from .incidencia import Incidencia
 
 
 class ArchivoIncidencia(models.Model):
-    """Modelo para almacenar fotos y videos adjuntos a una incidencia"""
+    """Stores photos and videos that are attached to an incident."""
     
     TIPOS_ARCHIVO = (
         ('imagen', 'Imagen'),
@@ -28,7 +28,7 @@ class ArchivoIncidencia(models.Model):
         help_text="Tipo de archivo: imagen o video"
     )
     
-    # Public ID de Cloudinary para construir URLs
+    # Cloudinary public ID used to build CDN URLs
     cloudinary_public_id = models.CharField(
         max_length=500,
         blank=True,
@@ -38,7 +38,7 @@ class ArchivoIncidencia(models.Model):
     
     fecha_subida = models.DateTimeField(auto_now_add=True)
     
-    # Metadatos opcionales
+    # Optional metadata to describe the file
     descripcion = models.CharField(
         max_length=255,
         blank=True,
@@ -55,7 +55,7 @@ class ArchivoIncidencia(models.Model):
         return f"{self.get_tipo_display()} - {self.incidencia.codigo_unico}"
     
     def get_cloudinary_url(self):
-        """Obtener URL completa de Cloudinary"""
+        """Return a full Cloudinary URL or fallback to the local file URL."""
         if self.cloudinary_public_id:
             import cloudinary
             resource_type = 'video' if self.tipo == 'video' else 'image'

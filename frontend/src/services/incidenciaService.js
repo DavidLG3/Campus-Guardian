@@ -2,42 +2,42 @@
 import apiClient from '@/config/api'
 
 export default {
-  // Obtener todas las incidencias
+  // Get all incidents
   getAll(params = {}) {
     return apiClient.get('/incidencias/', { params })
   },
   
-  // Obtener una incidencia por ID
+  // Get incident by ID
   getById(id) {
     return apiClient.get(`/incidencias/${id}/`)
   },
   
-  // Crear nueva incidencia
+  // Create new incident
   create(incidencia) {
     return apiClient.post('/incidencias/', incidencia)
   },
   
-  // Actualizar incidencia
+  // Update incident
   update(id, incidencia) {
     return apiClient.put(`/incidencias/${id}/`, incidencia)
   },
   
-  // Eliminar incidencia
+  // Delete incident
   delete(id) {
     return apiClient.delete(`/incidencias/${id}/`)
   },
   
-  // Cambiar estado de incidencia
+  // Change incident status
   updateEstado(id, estado) {
     return apiClient.patch(`/incidencias/${id}/cambiar_estado/`, { estado })
   },
   
-  // Resolver incidencia con nota (personal de seguridad)
+  // Resolve incident with note (security staff)
   resolver(id, nota_resolucion) {
     return apiClient.post(`/incidencias/${id}/resolver/`, { nota_resolucion })
   },
   
-  // Obtener incidencias por área geográfica
+  // Get incidents by geographic area
   getByArea(latMin, latMax, lonMin, lonMax) {
     return apiClient.get('/incidencias/', {
       params: {

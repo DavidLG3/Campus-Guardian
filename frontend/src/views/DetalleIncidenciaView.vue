@@ -54,7 +54,7 @@
                 </div>
               </div>
               
-              <!-- Sección de archivos adjuntos -->
+              <!-- Attachments section -->
               <div v-if="incidencia.archivos && incidencia.archivos.length > 0" class="info-card">
                 <h2>Archivos Adjuntos ({{ incidencia.archivos.length }})</h2>
                 <div class="archivos-grid">
@@ -75,7 +75,7 @@
               <div v-if="canChangeStatus" class="info-card">
                 <h2>Gestión de Incidencia</h2>
                 
-                <!-- Cambiar estado -->
+                <!-- Change status -->
                 <div class="status-actions">
                   <button
                     v-if="incidencia.estado !== 'abierta'"
@@ -95,12 +95,12 @@
                   </button>
                 </div>
                 
-                <!-- Mensaje si está asignada a otro -->
+                <!-- Message if it is assigned to another -->
                 <div v-if="isAsignadaAOtro" class="warning-message">
                   ⚠️ Esta incidencia está siendo atendida por {{ incidencia.usuario_asignado.nombre }}
                 </div>
                 
-                <!-- Resolver incidencia -->
+                <!-- Resolve incident -->
                 <div v-if="incidencia.estado !== 'resuelta'" class="resolver-section">
                   <h3>Resolver Incidencia</h3>
                   <textarea
@@ -119,7 +119,7 @@
                 </div>
               </div>
               
-              <!-- Mostrar información de resolución si está resuelta -->
+              <!-- Show resolution information if it is resolved -->
               <div v-if="incidencia.estado === 'resuelta' && incidencia.nota_resolucion" class="info-card resolucion-card">
                 <h2>Resolución</h2>
                 <div class="info-list">
@@ -154,7 +154,7 @@
             </div>
           </div>
           
-          <!-- Sección de Comentarios -->
+          <!-- Comments Sections -->
           <div class="comentarios-section">
             <div class="comentarios-header">
               <h2>
@@ -166,7 +166,7 @@
               <p class="comentarios-subtitle">Comparte información adicional sobre esta incidencia</p>
             </div>
 
-            <!-- Formulario para nuevo comentario -->
+            <!-- New comment form -->
             <div class="nuevo-comentario">
               <div class="avatar-input-group">
                 <div class="user-avatar">
@@ -203,7 +203,7 @@
               </div>
             </div>
 
-            <!-- Lista de comentarios -->
+            <!-- Comment List -->
             <div v-if="comentarios.length > 0" class="comentarios-list">
               <div 
                 v-for="comentario in comentarios" 
@@ -261,7 +261,7 @@
           </div>
         </div>
         
-        <!-- Modal para ver imágenes en grande -->
+        <!-- Modal to view large images -->
         <div v-if="selectedImage" class="image-modal" @click="selectedImage = null">
           <div class="modal-content" @click.stop>
             <button class="modal-close" @click="selectedImage = null">✕</button>
@@ -269,7 +269,7 @@
           </div>
         </div>
 
-        <!-- Modal de confirmación de eliminación -->
+        <!-- Deletion confirmation method -->
         <div v-if="showDeleteModal" class="delete-modal-overlay" @click="cancelDelete">
           <div class="delete-modal" @click.stop>
             <div class="delete-modal-icon">
@@ -337,7 +337,7 @@ const openImageModal = (url) => {
 }
 
 const canChangeStatus = computed(() => 
-  authStore.isOperador // Solo el personal de seguridad puede cambiar estados
+  authStore.isOperador // Only security personnel can change states
 )
 
 const isAsignadaAOtro = computed(() => {
@@ -398,7 +398,7 @@ async function resolverIncidencia() {
     const resultado = await incidenciaStore.resolver(incidencia.value.id, notaResolucion.value)
     incidencia.value = resultado
     notaResolucion.value = ''
-    // Recargar alertas para actualizar el contador en el navbar
+    // Reload alerts to update the counter in the navbar
     if (authStore.isAdmin || authStore.isOperador) {
       await alertaStore.fetchAll()
     }
@@ -436,10 +436,10 @@ onMounted(async () => {
     const data = await incidenciaStore.fetchById(id)
     incidencia.value = data
     
-    // Cargar comentarios
+    // Load comments
     await loadComentarios()
     
-    // Inicializar mapa después de cargar los datos
+    // Initialize map after loading data
     setTimeout(initMap, 100)
   } catch (err) {
     console.error('Error al cargar la incidencia:', err)
@@ -449,13 +449,12 @@ onMounted(async () => {
   }
 })
 
-// Funciones para comentarios
+// Comment Features
 const loadComentarios = async () => {
   try {
     console.log('Cargando comentarios para incidencia:', route.params.id)
     const response = await comentarioService.getComentariosByIncidencia(route.params.id)
     console.log('Comentarios recibidos:', response.data)
-    // El endpoint devuelve formato paginado con results
     comentarios.value = response.data.results || response.data
   } catch (err) {
     console.error('Error cargando comentarios:', err)
@@ -481,10 +480,8 @@ const submitComentario = async () => {
     
     console.log('Comentario creado:', response.data)
     
-    // Limpiar el textarea solo después de éxito
     nuevoComentario.value = ''
     
-    // Recargar comentarios
     await loadComentarios()
     
   } catch (err) {
@@ -492,7 +489,7 @@ const submitComentario = async () => {
     console.error('Response:', err.response)
     alert('Error al crear el comentario: ' + (err.response?.data?.detail || err.message))
   } finally {
-    // Asegurar que siempre se desbloquee el botón
+    // Ensure that the button is always unlocked
     isSubmittingComentario.value = false
   }
 }
@@ -997,7 +994,7 @@ h2 {
   box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
 }
 
-/* Archivos adjuntos */
+/* Attached files */
 .archivos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1056,7 +1053,7 @@ h2 {
   color: #666;
 }
 
-/* Modal de imagen */
+/* Image modal */
 .image-modal {
   position: fixed;
   inset: 0;
@@ -1181,7 +1178,7 @@ h2 {
   }
 }
 
-/* Estilos para Comentarios */
+/* Styles for comments */
 .comentarios-section {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 16px;
@@ -1506,7 +1503,7 @@ h2 {
   }
 }
 
-/* Modal de confirmación de eliminación */
+/* Delete confirmation modal */
 .delete-modal-overlay {
   position: fixed;
   top: 0;

@@ -186,7 +186,7 @@ function initCanvas() {
   canvas.value.width = size
   canvas.value.height = size
   
-  // Calcular escala inicial para que la imagen cubra el círculo
+  // Calculate initial scale so the image covers the circle
   const imgAspect = img.value.width / img.value.height
   if (imgAspect > 1) {
     scale.value = size / img.value.height
@@ -194,7 +194,7 @@ function initCanvas() {
     scale.value = size / img.value.width
   }
   
-  // Centrar la imagen
+  // Center the image
   offsetX.value = (size - img.value.width * scale.value) / 2
   offsetY.value = (size - img.value.height * scale.value) / 2
   
@@ -207,10 +207,10 @@ function drawCanvas() {
   const ctx = canvas.value.getContext('2d')
   const size = canvas.value.width
   
-  // Limpiar canvas
+  // Clear canvas
   ctx.clearRect(0, 0, size, size)
   
-  // Dibujar la imagen
+  // Draw image
   ctx.save()
   ctx.drawImage(
     img.value,
@@ -221,7 +221,7 @@ function drawCanvas() {
   )
   ctx.restore()
   
-  // Dibujar overlay con círculo recortado
+  // Draw overlay with cut-out circle
   ctx.save()
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
   ctx.fillRect(0, 0, size, size)
@@ -231,7 +231,7 @@ function drawCanvas() {
   ctx.fill()
   ctx.restore()
   
-  // Dibujar borde del círculo
+  // Draw circle border
   ctx.strokeStyle = '#00ff88'
   ctx.lineWidth = 3
   ctx.beginPath()
@@ -286,10 +286,10 @@ function handleZoom(event) {
   const delta = event.deltaY > 0 ? 0.9 : 1.1
   const newScale = scale.value * delta
   
-  // Limitar el zoom
+  // Limit zoom
   if (newScale < 0.1 || newScale > 5) return
   
-  // Zoom hacia el centro del canvas
+  // Zoom toward canvas center
   const size = canvas.value.width
   const centerX = size / 2
   const centerY = size / 2
@@ -322,19 +322,19 @@ async function saveAvatar() {
   error.value = ''
   
   try {
-    // Crear un canvas temporal para el resultado final
+    // Create a temporary canvas for final output
     const outputCanvas = document.createElement('canvas')
     const outputSize = 400
     outputCanvas.width = outputSize
     outputCanvas.height = outputSize
     const ctx = outputCanvas.getContext('2d')
     
-    // Crear clip circular
+    // Create circular clip
     ctx.beginPath()
     ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2)
     ctx.clip()
     
-    // Dibujar la imagen recortada
+    // Draw cropped image
     ctx.drawImage(
       img.value,
       offsetX.value,
@@ -343,7 +343,7 @@ async function saveAvatar() {
       img.value.height * scale.value
     )
     
-    // Convertir a blob
+    // Convert to blob
     const blob = await new Promise((resolve, reject) => {
       outputCanvas.toBlob((blob) => {
         if (blob) {

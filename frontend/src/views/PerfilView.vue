@@ -193,7 +193,7 @@
       @save="handleAvatarSave"
     />
     
-    <!-- Modal de vista previa de imagen -->
+    <!-- Image preview mode -->
     <div v-if="showImagePreview" class="image-preview-modal" @click="showImagePreview = false">
       <div class="preview-content" @click.stop>
         <button @click="showImagePreview = false" class="preview-close-btn">
@@ -252,10 +252,10 @@ async function handleAvatarSave(blob) {
     
     const response = await usuarioService.updateProfile(authStore.user.id, formData)
     
-    // Actualizar solo la foto de perfil, manteniendo todos los demás datos
+    // Update only the profile picture, keeping all other data
     authStore.user.foto_perfil_url = response.data.foto_perfil_url
     
-    // Actualizar localStorage con todos los datos
+    // Update localStorage with all data
     localStorage.setItem('user', JSON.stringify(authStore.user))
     
     showAvatarEditor.value = false
@@ -271,7 +271,7 @@ function toggleEditForm() {
   success.value = ''
   
   if (showEditForm.value) {
-    // Cargar datos actuales en el formulario
+    // Load current data into the form
     formData.nombre = authStore.user?.nombre || ''
     formData.email = authStore.user?.email || ''
     formData.telefono = authStore.user?.telefono || ''
@@ -284,7 +284,7 @@ async function handleSubmit() {
   error.value = ''
   success.value = ''
   
-  // Validación de contraseñas
+  // Password validation
   if (formData.password) {
     if (formData.password.length < 6) {
       error.value = 'La contraseña debe tener al menos 6 caracteres'
@@ -306,15 +306,13 @@ async function handleSubmit() {
       telefono: formData.telefono || null
     }
     
-    // Solo incluir contraseña si se especificó
     if (formData.password) {
       updateData.password = formData.password
     }
     
-    // Actualizar perfil
+    // Update profile
     const response = await usuarioService.updateProfile(authStore.user.id, updateData)
     
-    // Actualizar el store con los nuevos datos
     const updatedUser = {
       ...authStore.user,
       nombre: response.data.nombre,
@@ -326,7 +324,6 @@ async function handleSubmit() {
     
     success.value = 'Perfil actualizado correctamente'
     
-    // Resetear formulario después de 2 segundos
     setTimeout(() => {
       showEditForm.value = false
       success.value = ''
@@ -337,19 +334,18 @@ async function handleSubmit() {
   } catch (err) {
     console.error('Error actualizando perfil:', err)
     
-    // Manejar errores específicos
     if (err.response?.data) {
       const errorData = err.response.data
       
-      // Error de email duplicado
+      // Duplicate email error
       if (errorData.email) {
         error.value = 'Ya existe un usuario con ese correo electrónico'
       }
-      // Error de contraseña igual a la anterior
+      // Password error same as above
       else if (errorData.password) {
         error.value = 'La nueva contraseña debe ser diferente a la anterior'
       }
-      // Otros errores
+      // Other errors
       else if (errorData.detail || errorData.message) {
         error.value = errorData.detail || errorData.message
       }
@@ -856,7 +852,6 @@ async function handleSubmit() {
   transform: translateY(-2px);
 }
 
-/* Modal de vista previa de imagen */
 .image-preview-modal {
   position: fixed;
   top: 0;

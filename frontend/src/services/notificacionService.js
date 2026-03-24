@@ -2,27 +2,27 @@
 import apiClient from '@/config/api'
 
 export default {
-  // Obtener todas las notificaciones del usuario
+  // Get all user notifications
   getAll() {
     return apiClient.get('/notificaciones/')
   },
   
-  // Obtener una notificación por ID
+  // Get notification by ID
   getById(id) {
     return apiClient.get(`/notificaciones/${id}/`)
   },
   
-  // Marcar notificación como leída
+  // Mark notification as read
   markAsRead(id) {
     return apiClient.patch(`/notificaciones/${id}/marcar_leida/`)
   },
   
-  // Obtener notificaciones no leídas
+  // Get unread notifications
   getUnread() {
     return apiClient.get('/notificaciones/no_leidas/')
   },
   
-  // Contar notificaciones no leídas
+  // Count unread notifications
   countUnread() {
     return apiClient.get('/notificaciones/count_no_leidas/')
   }

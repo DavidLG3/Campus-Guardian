@@ -67,11 +67,11 @@ async function handleLogin() {
   try {
     await authStore.login(credentials.value)
     
-    // Redirigir según el tipo de usuario
+    // Redirect based on user type
     let redirect = router.currentRoute.value.query.redirect
     
     if (!redirect) {
-      // Si es admin, ir al dashboard de admin
+      // If you are an admin, go to the admin dashboard
       if (authStore.isAdmin) {
         redirect = '/admin'
       } else {

@@ -50,12 +50,13 @@ import AppLayout from '@/layouts/AppLayout.vue'
 
 const notificacionStore = useNotificacionStore()
 
-// Usar directamente las refs del store para evitar crear nuevos arrays
+// Use the store's refs directly to avoid creating new arrays
 const notificaciones = computed(() => notificacionStore.notificaciones)
 const isLoading = computed(() => notificacionStore.isLoading)
 const error = computed(() => notificacionStore.error)
 
 function formatDate(dateString) {
+  // Keep date rendering consistent across all notification cards.
   const date = new Date(dateString)
   return date.toLocaleString('es-ES', {
     day: 'numeric',
@@ -67,6 +68,7 @@ function formatDate(dateString) {
 
 async function marcarComoLeida(id) {
   try {
+    // Persist read state in backend and update store state.
     await notificacionStore.markAsRead(id)
   } catch (err) {
     console.error('Error al marcar notificación como leída:', err)
@@ -74,6 +76,7 @@ async function marcarComoLeida(id) {
 }
 
 onMounted(() => {
+  // Load notifications once when the view is mounted.
   notificacionStore.fetchAll()
 })
 </script>
@@ -133,7 +136,6 @@ h1 {
   color: var(--text-secondary, #a0a0a0);
   font-size: 18px;
   font-weight: 600;
-  /* Sin animación para evitar parpadeo en polling */
 }
 
 .error {

@@ -61,7 +61,7 @@
               />
             </div>
             
-            <!-- Sección de archivos multimedia -->
+            <!-- Media Files Sectio -->
             <div class="form-group">
               <label>Fotos y Videos (opcional)</label>
               <p class="field-description">
@@ -139,7 +139,7 @@ onUnmounted(() => {
 })
 
 function initMap() {
-  // Coordenadas por defecto (Campus de Cantoblanco, UAM)
+  // Default coordinates (Cantoblanco Campus, UAM)
   const defaultLat = 40.5472
   const defaultLng = -3.6894
   
@@ -150,7 +150,7 @@ function initMap() {
     maxZoom: 19
   }).addTo(map)
   
-  // Evento de click en el mapa
+  // Map click event
   map.on('click', (e) => {
     const lat = parseFloat(e.latlng.lat.toFixed(6))
     const lng = parseFloat(e.latlng.lng.toFixed(6))
@@ -163,12 +163,12 @@ function initMap() {
 }
 
 function updateMarker(lat, lng) {
-  // Remover marcador anterior si existe
+  // Remove previous bookmark if it exists
   if (marker) {
     map.removeLayer(marker)
   }
   
-  // Crear nuevo marcador
+  // Create new bookmark
   marker = L.marker([lat, lng], {
     icon: L.icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -180,9 +180,6 @@ function updateMarker(lat, lng) {
     })
   }).addTo(map)
   
-  // No mostrar popup, solo el marcador
-  
-  // Centrar mapa en el marcador
   map.setView([lat, lng], 15)
 }
 
@@ -192,7 +189,7 @@ function getCurrentLocation() {
     isLoading.value = true
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        // Redondear a 6 decimales para que coincida con el backend
+        // Round to 6 decimal places to match the backend
         const lat = parseFloat(position.coords.latitude.toFixed(6))
         const lng = parseFloat(position.coords.longitude.toFixed(6))
         
@@ -221,7 +218,7 @@ async function handleSubmit() {
   isLoading.value = true
   
   try {
-    // Crear FormData para enviar archivos
+    // Create FormData to send files
     const formDataToSend = new FormData()
     
     formDataToSend.append('tipo', formData.value.tipo)
@@ -232,12 +229,10 @@ async function handleSubmit() {
     }
     
     if (formData.value.latitud && formData.value.longitud) {
-      // Redondear a 6 decimales para cumplir con validación del backend
       formDataToSend.append('latitud', parseFloat(parseFloat(formData.value.latitud).toFixed(6)))
       formDataToSend.append('longitud', parseFloat(parseFloat(formData.value.longitud).toFixed(6)))
     }
     
-    // Agregar archivos si existen
     if (selectedFiles.value && selectedFiles.value.length > 0) {
       console.log('📎 Archivos a enviar:', selectedFiles.value.length)
       selectedFiles.value.forEach((file, index) => {
@@ -252,13 +247,13 @@ async function handleSubmit() {
     
     success.value = 'Incidencia reportada exitosamente. Redirigiendo...'
     
-    // Limpiar archivos
+    // Clean files
     if (mediaCaptureRef.value) {
       mediaCaptureRef.value.clearFiles()
     }
     selectedFiles.value = []
     
-    // Esperar un momento y recargar todas las incidencias antes de redirigir
+    // Wait a moment and reload all incidents before redirecting
     await new Promise(resolve => setTimeout(resolve, 500))
     await incidenciaStore.fetchAll()
     
@@ -271,12 +266,12 @@ async function handleSubmit() {
     console.error('🔢 Status code:', err.response?.status)
     console.error('📄 Headers:', err.response?.headers)
     
-    // Intentar extraer mensaje de error útil
+    // Attempt to extract a useful error message
     let errorMsg = 'Error al reportar la incidencia'
     
     if (err.response?.data) {
       if (typeof err.response.data === 'string') {
-        errorMsg = err.response.data.substring(0, 200) // Limitar texto
+        errorMsg = err.response.data.substring(0, 200)
       } else if (err.response.data.error) {
         errorMsg = err.response.data.error
       } else if (err.response.data.detail) {

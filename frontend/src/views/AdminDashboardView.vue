@@ -3,7 +3,7 @@
     <div class="admin-dashboard">
       <h1>Panel de Administración</h1>
       
-      <!-- Accesos Rápidos -->
+      <!-- Quick actions -->
       <section class="acciones-rapidas">
         <h2>Accesos Rápidos</h2>
         <div class="actions-grid">
@@ -29,7 +29,7 @@
         </div>
       </section>
 
-      <!-- Estadísticas Generales -->
+      <!-- Statistics -->
       <section class="estadisticas">
         <h2>Estadísticas del Sistema</h2>
         <div class="stats-grid">
@@ -101,11 +101,11 @@ const estadisticas = computed(() => {
 onMounted(async () => {
   isLoading.value = true
   try {
-    // Cargar usuarios
+    // Load users
     const response = await adminService.listarUsuarios()
     usuarios.value = response.data
     
-    // Cargar incidencias
+    // Load incidents
     await incidenciaStore.fetchAll()
   } catch (error) {
     console.error('Error cargando datos:', error)

@@ -5,7 +5,7 @@ from .usuario import Usuario
 
 
 class Comentario(models.Model):
-    """Modelo para comentarios en incidencias"""
+    """Stores user comments attached to incidents."""
     
     incidencia = models.ForeignKey(
         Incidencia,

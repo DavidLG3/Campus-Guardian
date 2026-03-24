@@ -62,24 +62,23 @@ describe('Smoke Tests - Campus Guardian', () => {
     cy.fixture('testData.json').then((testData) => {
       cy.login(testData.testUsers.admin.email, testData.testUsers.admin.password)
     
-    // Dashboard
-    cy.visit('/dashboard')
-    cy.url().should('include', '/dashboard')
-    
-    // Incidencias
-    cy.visit('/incidencias')
-    cy.url().should('include', '/incidencias')
-    
-    // Mapa
-    cy.visit('/mapa')
-    cy.url().should('include', '/mapa')
-    
-    // Perfil
-    cy.visit('/perfil')
-    cy.url().should('include', '/perfil')
+      // Dashboard
+      cy.visit('/dashboard')
+      cy.url().should('include', '/dashboard')
+      
+      // Incidencias
+      cy.visit('/incidencias')
+      cy.url().should('include', '/incidencias')
+      
+      // Mapa
+      cy.visit('/mapa')
+      cy.url().should('include', '/mapa')
+      
+      // Perfil
+      cy.visit('/perfil')
+      cy.url().should('include', '/perfil')
+    })
   })
-
-  it('no debe tener errores de consola críticos', () => {
     cy.visit('/')
     
     cy.window().then((win) => {
@@ -104,5 +103,5 @@ describe('Smoke Tests - Campus Guardian', () => {
       expect(failedResources.length).to.be.greaterThan(0) // Hay recursos JS/CSS
     })
   })
-})
+
 

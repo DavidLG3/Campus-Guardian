@@ -2,37 +2,37 @@
 import apiClient from '@/config/api'
 
 export default {
-  // Obtener todas las alertas
+  // Get all alerts
   getAll(params = {}) {
     return apiClient.get('/alertas/', { params })
   },
   
-  // Obtener una alerta por ID
+  // Get alert by ID
   getById(id) {
     return apiClient.get(`/alertas/${id}/`)
   },
   
-  // Crear nueva alerta
+  // Create new alert
   create(alerta) {
     return apiClient.post('/alertas/', alerta)
   },
   
-  // Actualizar alerta
+  // Update alert
   update(id, alerta) {
     return apiClient.put(`/alertas/${id}/`, alerta)
   },
   
-  // Eliminar alerta
+  // Delete alert
   delete(id) {
     return apiClient.delete(`/alertas/${id}/`)
   },
   
-  // Marcar alerta como leída
+  // Mark alert as read
   markAsRead(id) {
     return apiClient.patch(`/alertas/${id}/marcar_leida/`)
   },
   
-  // Obtener alertas activas
+  // Get active alerts
   getActive() {
     return apiClient.get('/alertas/', {
       params: { activa: true }

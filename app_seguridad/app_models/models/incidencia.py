@@ -21,7 +21,7 @@ class Incidencia(models.Model):
         ('resuelta', 'Resuelta'),
     )
 
-    # Código único de identificación
+    # Unique incident tracking code (auto-generated on save)
     codigo_unico = models.CharField(
         max_length=20,
         unique=True,
@@ -33,15 +33,15 @@ class Incidencia(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPOS_INCIDENCIA)
     fecha_reporte = models.DateTimeField(auto_now_add=True)
 
-    # Relación con usuario que reporta
+    # User who reported the incident
     usuario = models.ForeignKey(
         Usuario,
         on_delete=models.CASCADE,
         related_name="incidencias"
     )
 
-    ### UBICACIÓN PARA LEAFLET ###
-    # Coordenadas geográficas (OBLIGATORIAS para el mapa)
+    # Location fields used by the Leaflet map
+    # Geographic coordinates (required for the map)
     latitud = models.DecimalField(
         max_digits=9, 
         decimal_places=6,
@@ -63,7 +63,7 @@ class Incidencia(models.Model):
         help_text="Longitud de la incidencia (entre -180 y 180)"
     )
     
-    # Dirección legible (opcional, pero útil)
+    # Human-friendly address (optional but useful)
     direccion = models.CharField(
         max_length=300,
         blank=True,
@@ -71,14 +71,14 @@ class Incidencia(models.Model):
         help_text="Dirección o descripción del lugar (ej: 'Biblioteca Central, 2do piso')"
     )
 
-    # Estado
+    # Current incident status
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
         default='pendiente'
     )
     
-    # Usuario asignado (personal de seguridad trabajando en la incidencia)
+    # Assigned user (security staff handling the incident)
     asignado_a = models.ForeignKey(
         Usuario,
         on_delete=models.SET_NULL,
@@ -88,7 +88,7 @@ class Incidencia(models.Model):
         help_text="Usuario de seguridad asignado a esta incidencia"
     )
     
-    # Nota de resolución (para personal de seguridad)
+    # Resolution note (written by security staff)
     nota_resolucion = models.TextField(
         blank=True,
         default='',
@@ -113,19 +113,19 @@ class Incidencia(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.codigo_unico:
-            # Generar código único: INC-YYYY-NNNN
+            # Generate unique code: INC-YYYY-NNNN
             year = datetime.now().year
-            # Obtener el último número de incidencia del año
+            # Get the last incident number from the current year
             last_incidencia = Incidencia.objects.filter(
                 codigo_unico__startswith=f'INC-{year}-'
             ).order_by('codigo_unico').last()
             
             if last_incidencia:
-                # Extraer el número y sumar 1
+                # Extract the number and increment it
                 last_number = int(last_incidencia.codigo_unico.split('-')[-1])
                 new_number = last_number + 1
             else:
-                # Primera incidencia del año
+                # First incident of the year
                 new_number = 1
             
             self.codigo_unico = f'INC-{year}-{new_number:04d}'

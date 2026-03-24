@@ -2,19 +2,19 @@
 # exit on error
 set -o errexit
 
-# Instalar dependencias
+# Install dependencies
 pip install -r requirements.txt
 
-# Ir al directorio del proyecto Django
+# Go to the Django project directory
 cd app_seguridad
 
-# Recolectar archivos estáticos
+# Collect static files
 python manage.py collectstatic --no-input
 
-# Aplicar migraciones
+# Apply migrations
 python manage.py migrate
 
-# Crear superusuario por defecto
+# Create default superuser
 python manage.py create_default_superuser
 
 echo "Build completado exitosamente!"

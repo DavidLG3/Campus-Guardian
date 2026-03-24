@@ -1,9 +1,9 @@
-"""crear_usuarios_test.py module: backend logic for Campus Guardian."""
+"""Management command to create or refresh Cypress test users."""
 from django.core.management.base import BaseCommand
 from app_models.models import Usuario
 
 class Command(BaseCommand):
-    help = 'Crea usuarios de prueba para Cypress tests'
+    help = 'Crear o actualizar los uusarios para Cypress'
 
     def handle(self, *args, **kwargs):
         usuarios_test = [
@@ -42,9 +42,9 @@ class Command(BaseCommand):
         for user_data in usuarios_test:
             username = user_data['username']
             
-            # Verificar si ya existe
+            # Reuse and refresh users if they already exist.
             if Usuario.objects.filter(username=username).exists():
-                # Actualizar usuario existente
+                # Update existing user fields to keep test credentials in sync.
                 usuario = Usuario.objects.get(username=username)
                 usuario.email = user_data['email']
                 usuario.set_password(user_data['password'])
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                     self.style.SUCCESS(f'✓ Usuario {username} actualizado: {usuario.email} (tipo: {usuario.tipo}, rol: {usuario.rol})')
                 )
             else:
-                # Crear nuevo usuario
+                # Create a new test account when it does not exist yet.
                 usuario = Usuario.objects.create_user(
                     username=username,
                     email=user_data['email'],
@@ -73,4 +73,4 @@ class Command(BaseCommand):
                     self.style.SUCCESS(f'✓ Usuario {username} creado: {usuario.email} (tipo: {usuario.tipo}, rol: {usuario.rol})')
                 )
 
-        self.stdout.write(self.style.SUCCESS('\n¡Usuarios de prueba listos para Cypress!'))
+        self.stdout.write(self.style.SUCCESS('\nTest users are ready for Cypress.'))

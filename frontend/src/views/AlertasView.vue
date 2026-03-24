@@ -121,7 +121,7 @@ function verIncidencia(alerta) {
 async function marcarComoLeida(id) {
   try {
     await alertaStore.markAsRead(id)
-    // Recargar todas las alertas para actualizar el contador
+    // Reload alerts to update counter
     await alertaStore.fetchAll()
   } catch (err) {
     console.error('Error al marcar alerta como leída:', err)

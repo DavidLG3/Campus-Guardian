@@ -5,9 +5,7 @@ from .incidencia import Incidencia
 
 
 class Notificacion(models.Model):
-    """
-    Modelo para notificaciones a ciudadanos sobre el estado de sus incidencias
-    """
+    """Notifications sent to citizens about their incident status."""
     TIPOS = (
         ('en_progreso', 'Incidencia en Progreso'),
         ('resuelta', 'Incidencia Resuelta'),

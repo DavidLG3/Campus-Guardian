@@ -247,26 +247,26 @@ function validateEmail() {
     return false
   }
   
-  // Validar que tenga exactamente un @
+  // Validate that it has exactly one @
   const atCount = (email.match(/@/g) || []).length
   if (atCount !== 1) {
     validationErrors.value.email = 'El email debe contener exactamente un símbolo @'
     return false
   }
   
-  // Validar dominio UAM
+  // Validate UAM domain
   if (!email.endsWith('@uam.es') && !email.endsWith('@estudiante.uam.es')) {
     validationErrors.value.email = 'Solo se permiten correos @uam.es o @estudiante.uam.es'
     return false
   }
   
-  // Validar longitud
+  // Validate length
   if (email.length > 254) {
     validationErrors.value.email = 'El email es demasiado largo'
     return false
   }
   
-  // Validar parte local
+  // Validate local part
   const parteLocal = email.split('@')[0]
   if (!parteLocal || parteLocal.length < 1) {
     validationErrors.value.email = 'El email no es válido'
@@ -291,13 +291,13 @@ function validateTelefono() {
     return true
   }
   
-  // Solo permitir dígitos
+  // Only allow digits
   if (!/^\d+$/.test(telefono)) {
     validationErrors.value.telefono = 'Solo se permiten números'
     return false
   }
   
-  // Exactamente 9 dígitos
+  // Exactly 9 digits
   if (telefono.length !== 9) {
     validationErrors.value.telefono = 'Debe tener exactamente 9 dígitos'
     return false
@@ -310,7 +310,7 @@ function validateTelefono() {
 function validatePassword() {
   const pwd = formData.value.password
   
-  // Actualizar checks visuales
+  // Update visual checks
   passwordChecks.value.length = pwd.length >= 8 && pwd.length <= 128
   passwordChecks.value.lowercase = /[a-z]/.test(pwd)
   passwordChecks.value.uppercase = /[A-Z]/.test(pwd)
@@ -387,7 +387,7 @@ async function handleRegister() {
   error.value = ''
   success.value = ''
   
-  // Validar todos los campos
+  // Validate all fields
   const nombreValid = validateNombre()
   const emailValid = validateEmail()
   const telefonoValid = validateTelefono()
@@ -402,12 +402,12 @@ async function handleRegister() {
   isLoading.value = true
   
   try {
-    // Combinar prefijo + teléfono si está presente
+    // Combine prefix + phone number if available
     const telefonoCompleto = formData.value.telefono 
       ? `${formData.value.prefijo}${formData.value.telefono}`
       : ''
     
-    // Registrar usuario (siempre como ciudadano)
+    // Register user (always as a citizen)
     await authStore.register({
       nombre: formData.value.nombre,
       email: formData.value.email,
@@ -418,13 +418,12 @@ async function handleRegister() {
     
     success.value = 'Cuenta creada exitosamente. Iniciando sesión...'
     
-    // Iniciar sesión automáticamente
+    // Sign in automatically
     await authStore.login({
       email: formData.value.email,
       password: formData.value.password
     })
     
-    // Si hay avatar, subirlo después del login
     if (avatarBlob.value && authStore.user) {
       try {
         const formDataAvatar = new FormData()
@@ -434,11 +433,10 @@ async function handleRegister() {
         await usuarioService.default.updateProfile(authStore.user.id, formDataAvatar)
       } catch (avatarErr) {
         console.error('Error al subir avatar:', avatarErr)
-        // No bloqueamos el inicio de sesión por error en avatar
       }
     }
     
-    // Redirigir según el tipo de usuario
+    // Redirect based on user type
     setTimeout(() => {
       if (authStore.user?.tipo === 'admin') {
         router.push('/admin')
@@ -858,7 +856,6 @@ select:focus {
   width: 100%;
 }
 
-/* Validaciones en tiempo real */
 .input-error {
   border-color: #ff4444 !important;
   background: rgba(255, 68, 68, 0.1);
@@ -909,7 +906,6 @@ select:focus {
   75% { transform: translateX(5px); }
 }
 
-/* Grupo de input de teléfono */
 .phone-input-group {
   display: flex;
   gap: 0.5rem;

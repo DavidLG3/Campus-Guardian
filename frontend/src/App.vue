@@ -21,10 +21,10 @@
 <script setup>
 import { onErrorCaptured } from 'vue'
 
-// Capturar errores globales
+// Capture global errors
 onErrorCaptured((err, instance, info) => {
   console.error('Error capturado en App.vue:', err, info)
-  // No propagar el error para evitar pantallas en negro
+  // Do not propagate the error to avoid black screens
   return false
 })
 </script>
@@ -51,7 +51,7 @@ body {
   min-height: 100vh;
 }
 
-/* Transiciones entre vistas */
+/* Transitions between views */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

@@ -2,20 +2,20 @@
 import apiClient from '@/config/api'
 
 export default {
-  // Obtener todos los usuarios
+  // Get all users
   getAll(params = {}) {
     return apiClient.get('/usuarios/', { params })
   },
   
-  // Obtener un usuario por ID
+  // Get user by ID
   getById(id) {
     return apiClient.get(`/usuarios/${id}/`)
   },
   
-  // Actualizar perfil de usuario
+  // Update user profile
   updateProfile(id, data) {
     const config = {}
-    // Si es FormData (para subir archivos), configurar headers apropiados
+    // If it's FormData (to upload files), set appropriate headers
     if (data instanceof FormData) {
       config.headers = {
         'Content-Type': 'multipart/form-data'
@@ -24,7 +24,7 @@ export default {
     return apiClient.put(`/usuarios/${id}/`, data, config)
   },
   
-  // Cambiar contraseña
+  // Change password
   changePassword(oldPassword, newPassword) {
     return apiClient.post('/usuarios/change-password/', {
       old_password: oldPassword,

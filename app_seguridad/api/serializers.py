@@ -1,10 +1,10 @@
-"""serializers.py module: backend logic for Campus Guardian."""
+"""Serializers used by the Campus Guardian API endpoints."""
 from rest_framework import serializers
 from app_models.models import Usuario, Incidencia, Alerta, Notificacion, ArchivoIncidencia, Comentario
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    """Serializer para el modelo Usuario"""
+    """User serializer with profile fields and password handling."""
     password = serializers.CharField(write_only=True, required=False)
     nombre = serializers.CharField(source='first_name', required=False)
     telefono = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -23,7 +23,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         }
     
     def get_foto_perfil_url(self, obj):
-        """Obtener URL completa de la foto de perfil"""
+        """Build the full avatar URL when a profile image exists."""
         if obj.foto_perfil:
             request = self.context.get('request')
             if request:
@@ -32,29 +32,29 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return None
     
     def validate_email(self, value):
-        """Validar que el email no esté en uso por otro usuario"""
+        """Ensure the email is unique, including during profile updates."""
         instance = self.instance
         if instance:
-            # Si estamos actualizando, excluir el usuario actual
+            # During updates, ignore the current user.
             if Usuario.objects.exclude(pk=instance.pk).filter(email=value).exists():
                 raise serializers.ValidationError("Ya existe un usuario con ese correo electrónico")
         else:
-            # Si estamos creando, verificar que no exista
+            # During creation, the email must not exist yet.
             if Usuario.objects.filter(email=value).exists():
                 raise serializers.ValidationError("Ya existe un usuario con ese correo electrónico")
         return value
     
     def validate_password(self, value):
-        """Validar que la contraseña sea diferente a la anterior"""
+        """Prevent users from reusing their current password."""
         instance = self.instance
         if instance and value:
-            # Verificar si la nueva contraseña es diferente a la actual
+            # Reject the new password if it matches the current one.
             if instance.check_password(value):
                 raise serializers.ValidationError("La nueva contraseña debe ser diferente a la anterior")
         return value
     
     def create(self, validated_data):
-        """Crear usuario con contraseña encriptada"""
+        """Create a user and store the password securely."""
         password = validated_data.pop('password', None)
         usuario = Usuario(**validated_data)
         if password:
@@ -63,14 +63,14 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return usuario
     
     def update(self, instance, validated_data):
-        """Actualizar usuario, encriptando contraseña si se proporciona"""
+        """Update a user and hash the password when provided."""
         password = validated_data.pop('password', None)
         
-        # Manejar el campo 'nombre' que mapea a 'first_name'
+        # Map the API-facing `nombre` field to Django's `first_name`.
         if 'first_name' in validated_data:
             instance.first_name = validated_data.pop('first_name')
         
-        # Preservar is_active si no se envía explícitamente
+        # Keep the current active flag unless it is explicitly provided.
         if 'is_active' not in validated_data:
             validated_data['is_active'] = instance.is_active
         
@@ -84,14 +84,14 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return instance
     
     def to_representation(self, instance):
-        """Personalizar la respuesta para incluir 'nombre' en lugar de 'first_name'"""
+        """Expose `nombre` in responses as a friendly alias for `first_name`."""
         representation = super().to_representation(instance)
         representation['nombre'] = instance.first_name
         return representation
 
 
 class ArchivoIncidenciaSerializer(serializers.ModelSerializer):
-    """Serializer para archivos adjuntos de incidencias"""
+    """Serializer for files attached to incidents."""
     archivo_url = serializers.SerializerMethodField()
     
     class Meta:
@@ -100,12 +100,12 @@ class ArchivoIncidenciaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'fecha_subida']
     
     def get_archivo_url(self, obj):
-        """Obtener URL completa del archivo desde Cloudinary"""
+        """Return the full file URL from Cloudinary."""
         return obj.get_cloudinary_url()
 
 
 class ComentarioSerializer(serializers.ModelSerializer):
-    """Serializer para comentarios en incidencias"""
+    """Serializer for incident comments."""
     usuario_info = serializers.SerializerMethodField()
     
     class Meta:
@@ -130,7 +130,7 @@ class ComentarioSerializer(serializers.ModelSerializer):
 
 
 class IncidenciaSerializer(serializers.ModelSerializer):
-    """Serializer para el modelo Incidencia"""
+    """Main serializer for incident details returned to the frontend."""
     usuario_reporta = serializers.SerializerMethodField()
     usuario_asignado = serializers.SerializerMethodField()
     resuelto_por_nombre = serializers.SerializerMethodField()
@@ -173,7 +173,7 @@ class IncidenciaSerializer(serializers.ModelSerializer):
         return None
     
     def get_estado(self, obj):
-        # Mapear estados del modelo a los que espera el frontend
+        # Translate backend status values to the names used by the frontend.
         estado_map = {
             'pendiente': 'abierta',
             'en_proceso': 'en_progreso',
@@ -186,7 +186,7 @@ class IncidenciaSerializer(serializers.ModelSerializer):
 
 
 class IncidenciaCreateSerializer(serializers.ModelSerializer):
-    """Serializer para crear incidencias (sin especificar usuario manualmente)"""
+    """Serializer used when creating incidents from client requests."""
     
     class Meta:
         model = Incidencia
@@ -194,24 +194,24 @@ class IncidenciaCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
     
     def create(self, validated_data):
-        # Por defecto, estado pendiente
+        # New incidents start as pending by default.
         validated_data['estado'] = 'pendiente'
         return super().create(validated_data)
         return incidencia
 
 
 class AlertaSerializer(serializers.ModelSerializer):
-    """Serializer para el modelo Alerta"""
+    """Serializer for system alerts and alert metadata."""
     fecha_creacion = serializers.DateTimeField(read_only=True)
     leida = serializers.SerializerMethodField()
     activa = serializers.BooleanField(default=True, write_only=True, required=False)
     
-    # Campos adicionales que espera el frontend
+    # Extra frontend-facing fields not stored directly in the model.
     tipo = serializers.CharField(required=False, allow_blank=True, write_only=True)
     nivel = serializers.CharField(required=False, allow_blank=True, write_only=True)
     ubicacion = serializers.CharField(required=False, allow_blank=True, write_only=True)
     
-    # Hacer incidencia opcional
+    # Allow creating alerts without linking an incident explicitly.
     incidencia = serializers.PrimaryKeyRelatedField(
         queryset=Incidencia.objects.all(),
         required=False,
@@ -228,9 +228,9 @@ class AlertaSerializer(serializers.ModelSerializer):
         return obj.estado == 'leida'
     
     def to_representation(self, instance):
-        """Personalizar la salida para incluir campos que espera el frontend"""
+        """Shape the response with the extra fields expected by the frontend."""
         data = super().to_representation(instance)
-        # Agregar campos basados en la incidencia relacionada
+        # Derive display fields from the related incident when available.
         if instance.incidencia:
             data['tipo'] = 'Nueva Incidencia'
             data['nivel'] = instance.incidencia.prioridad if hasattr(instance.incidencia, 'prioridad') else 'medio'
@@ -243,15 +243,15 @@ class AlertaSerializer(serializers.ModelSerializer):
         return data
     
     def create(self, validated_data):
-        # Extraer campos que no están en el modelo
+        # Remove request-only fields that do not belong to the model.
         tipo = validated_data.pop('tipo', None)
         nivel = validated_data.pop('nivel', None)
         ubicacion = validated_data.pop('ubicacion', None)
         validated_data.pop('activa', None)
         
-        # Si no se proporciona incidencia, crear una automática
+        # If no incident is provided, create a generic one to keep the relation.
         if 'incidencia' not in validated_data or validated_data.get('incidencia') is None:
-            # Crear una incidencia genérica para la alerta
+            # Create a fallback incident for system-generated alerts.
             incidencia = Incidencia.objects.create(
                 titulo=f"Alerta: {tipo or 'General'}",
                 descripcion=validated_data.get('mensaje', 'Alerta del sistema'),
@@ -266,12 +266,12 @@ class AlertaSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
     def update(self, instance, validated_data):
-        # Manejar el campo leida
+        # Allow toggling `leida` by mapping it to the internal status value.
         if 'leida' in validated_data:
             leida = validated_data.pop('leida')
             instance.estado = 'leida' if leida else 'pendiente'
         
-        # Extraer campos que no están en el modelo
+        # Drop request-only fields before model update.
         validated_data.pop('tipo', None)
         validated_data.pop('nivel', None)
         validated_data.pop('ubicacion', None)
@@ -281,7 +281,7 @@ class AlertaSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """Serializer para registro de nuevos usuarios"""
+    """Serializer used to validate and create new user accounts."""
     password = serializers.CharField(write_only=True, min_length=8, max_length=128)
     nombre = serializers.CharField(write_only=True, required=True, max_length=100)
     telefono = serializers.CharField(required=False, allow_blank=True, max_length=20)
@@ -297,58 +297,58 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['nombre', 'email', 'telefono', 'rol', 'password']
     
     def validate_email(self, value):
-        """Validar email UAM con exactamente un @ y dominios permitidos"""
+        """Validate UAM email format with allowed institutional domains."""
         import re
         
-        # Validar que tenga exactamente un @
+        # Must contain exactly one @ symbol.
         if value.count('@') != 1:
             raise serializers.ValidationError("El email debe contener exactamente un símbolo @")
         
-        # Convertir a minúsculas para validación
+        # Normalize before applying format checks.
         value = value.lower().strip()
         
-        # Validar que termine en @uam.es o @estudiante.uam.es
+        # Only allow official UAM domains.
         if not (value.endswith('@uam.es') or value.endswith('@estudiante.uam.es')):
             raise serializers.ValidationError(
                 "Solo se permiten correos institucionales de la UAM (@uam.es o @estudiante.uam.es)"
             )
         
-        # Validar longitud máxima del email
+        # Keep within RFC-safe max length.
         if len(value) > 254:
             raise serializers.ValidationError("El email es demasiado largo (máximo 254 caracteres)")
         
-        # Validar formato básico
+        # Ensure the local-part exists.
         parte_local = value.split('@')[0]
         if not parte_local or len(parte_local) < 1:
             raise serializers.ValidationError("El email no tiene una parte válida antes del @")
         
-        # Validar caracteres permitidos en la parte local
+        # Restrict local-part characters for consistency.
         if not re.match(r'^[a-z0-9._-]+$', parte_local):
             raise serializers.ValidationError(
                 "El email solo puede contener letras, números, puntos, guiones y guiones bajos antes del @"
             )
         
-        # Validar que no esté registrado
+        # Email must be unique.
         if Usuario.objects.filter(email=value).exists():
             raise serializers.ValidationError("Este email ya está registrado")
         
         return value
     
     def validate_telefono(self, value):
-        """Validar formato de teléfono: prefijo + 9 dígitos"""
+        """Validate phone format as international prefix plus 9 digits."""
         import re
         
         if not value or value.strip() == '':
             return ''
         
-        # El teléfono debe venir en formato +XX123456789 o +XXX123456789
+        # Expected format: +XX123456789 or +XXX123456789.
         value = value.strip()
         
-        # Validar que empiece con +
+        # Prefix must start with +.
         if not value.startswith('+'):
             raise serializers.ValidationError("El teléfono debe incluir el prefijo internacional")
         
-        # Separar prefijo y número
+        # Split prefix and local number.
         match = re.match(r'^(\+\d{1,3})(\d{9})$', value)
         if not match:
             raise serializers.ValidationError(
@@ -357,14 +357,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         
         prefijo, numero = match.groups()
         
-        # Validar que el número tenga exactamente 9 dígitos
+        # Enforce fixed local length.
         if len(numero) != 9:
             raise serializers.ValidationError("El número debe tener exactamente 9 dígitos (sin contar el prefijo)")
         
         return value
     
     def validate_nombre(self, value):
-        """Validar que el nombre tenga longitud adecuada"""
+        """Validate name length and accepted characters."""
         value = value.strip()
         
         if len(value) < 2:
@@ -373,7 +373,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if len(value) > 100:
             raise serializers.ValidationError("El nombre es demasiado largo (máximo 100 caracteres)")
         
-        # Validar que solo contenga letras, espacios y algunos caracteres especiales
+        # Allow letters, spaces, hyphens, and apostrophes.
         import re
         if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", value):
             raise serializers.ValidationError("El nombre solo puede contener letras, espacios, guiones y apóstrofes")
@@ -381,60 +381,60 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
     
     def validate_password(self, value):
-        """Validar contraseña segura con múltiples requisitos"""
+        """Validate a strong password using basic security requirements."""
         import re
         
-        # Longitud mínima y máxima
+        # Minimum and maximum length.
         if len(value) < 8:
             raise serializers.ValidationError("La contraseña debe tener al menos 8 caracteres")
         
         if len(value) > 128:
             raise serializers.ValidationError("La contraseña es demasiado larga (máximo 128 caracteres)")
         
-        # Verificar que tenga al menos una letra minúscula
+        # Require at least one lowercase letter.
         if not re.search(r'[a-z]', value):
             raise serializers.ValidationError("La contraseña debe contener al menos una letra minúscula")
         
-        # Verificar que tenga al menos una letra mayúscula
+        # Require at least one uppercase letter.
         if not re.search(r'[A-Z]', value):
             raise serializers.ValidationError("La contraseña debe contener al menos una letra mayúscula")
         
-        # Verificar que tenga al menos un número
+        # Require at least one number.
         if not re.search(r'\d', value):
             raise serializers.ValidationError("La contraseña debe contener al menos un número")
         
-        # Verificar que tenga al menos un carácter especial
+        # Require at least one special character.
         if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/]', value):
             raise serializers.ValidationError("La contraseña debe contener al menos un carácter especial (!@#$%^&*...)")
         
-        # Verificar que no contenga espacios
+        # Do not allow spaces.
         if ' ' in value:
             raise serializers.ValidationError("La contraseña no puede contener espacios")
         
         return value
     
     def create(self, validated_data):
-        """Crear usuario registrado"""
+        """Create a new user from validated registration data."""
         nombre = validated_data.pop('nombre')
         telefono = validated_data.pop('telefono', '')
         rol = validated_data.pop('rol', 'ciudadano')
         password = validated_data.pop('password')
         email = validated_data.get('email')
         
-        # Crear username a partir del email
+        # Build a username from the email local-part.
         username = email.split('@')[0]
         
-        # Si el username ya existe, agregar un número
+        # If needed, append a numeric suffix to keep it unique.
         base_username = username
         counter = 1
         while Usuario.objects.filter(username=username).exists():
             username = f"{base_username}{counter}"
             counter += 1
         
-        # Determinar el tipo según el rol
+        # Map UI role to internal user type.
         tipo = 'seguridad' if rol == 'operador' else 'normal'
         
-        # Crear el usuario
+        # Create and persist the user.
         usuario = Usuario(
             username=username,
             email=email,
@@ -443,8 +443,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             rol=rol
         )
         
-        # Si se proporcionó teléfono, guardarlo en last_name (temporal)
-        # Idealmente deberías agregar un campo telefono al modelo Usuario
+        # Temporary workaround: store phone in last_name when provided.
+        # Ideally, `telefono` should exist as a proper model field.
         if telefono:
             usuario.last_name = telefono
         
@@ -454,7 +454,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class NotificacionSerializer(serializers.ModelSerializer):
-    """Serializer para notificaciones de ciudadanos"""
+    """Serializer for citizen-facing notifications."""
     incidencia_codigo = serializers.SerializerMethodField()
     
     class Meta:
@@ -464,5 +464,5 @@ class NotificacionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'fecha_creacion']
     
     def get_incidencia_codigo(self, obj):
-        """Retorna el código de incidencia si existe, sino None"""
+        """Return the incident code when linked, otherwise None."""
         return obj.incidencia.codigo_unico if obj.incidencia else None

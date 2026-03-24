@@ -1,6 +1,6 @@
 <template>
   <div class="chatbot-container">
-    <!-- Botón flotante -->
+    <!-- Button -->
     <button 
       v-if="!isOpen" 
       @click="toggleChat" 
@@ -11,7 +11,7 @@
       <span v-if="hasUnreadMessage" class="notification-dot"></span>
     </button>
 
-    <!-- Ventana de chat -->
+    <!-- Chat Window -->
     <div v-if="isOpen" class="chat-window">
       <!-- Header -->
       <div class="chat-header">
@@ -27,7 +27,7 @@
         <button @click="toggleChat" class="close-button">✕</button>
       </div>
 
-      <!-- Mensajes -->
+      <!-- Messages -->
       <div class="chat-messages" ref="messagesContainer">
         <div 
           v-for="(message, index) in messages" 
@@ -131,34 +131,34 @@ async function sendMessage() {
   const message = userInput.value.trim()
   userInput.value = ''
   
-  // Agregar mensaje del usuario
+  // Add user message
   addMessage(message, 'user')
   
-  // Mostrar indicador de escritura durante toda la petición
+  // Show typing indicator during the whole request
   isTyping.value = true
   
   try {
-    // Preparar historial para enviar a la API
+    // Prepare history to send to the API
     const history = messages.value
       .filter(m => m.sender !== 'system')
       .map(m => ({
         sender: m.sender,
-        text: m.text.replace(/<[^>]*>/g, '') // Remover HTML
+        text: m.text.replace(/<[^>]*>/g, '') // Remove HTML
       }))
     
-    // Llamar a la API del chatbot
+    // Call chatbot API
     const response = await api.post('/chatbot/', {
       message: message,
-      history: history.slice(0, -1) // Excluir el último mensaje (el actual)
+      history: history.slice(0, -1) // Exclude the last message (the current one)
     })
     
-    // Agregar respuesta del guardián
+    // Add guardian response
     addMessage(response.data.response, 'guardian')
     
   } catch (error) {
     console.error('Error al comunicarse con el chatbot:', error)
     
-    // Intentar dar una respuesta útil basada en palabras clave
+    // Try to provide a useful response based on keywords
     let fallbackResponse = 'Lo siento, el servicio de IA no está disponible en este momento. '
     
     const messageLower = message.toLowerCase()
@@ -176,13 +176,13 @@ async function sendMessage() {
     
     addMessage(fallbackResponse, 'guardian')
   } finally {
-    // Ocultar indicador de escritura al terminar (éxito o error)
+    // Hide typing indicator when finished (success or error)
     isTyping.value = false
   }
 }
 
 onMounted(() => {
-  // Mostrar notificación después de 5 segundos si no ha abierto el chat
+  // Show notification after 5 seconds if chat is still closed
   setTimeout(() => {
     if (!isOpen.value && messages.value.length === 0) {
       hasUnreadMessage.value = true

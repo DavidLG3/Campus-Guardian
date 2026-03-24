@@ -1,4 +1,4 @@
-"""urls.py module: backend logic for Campus Guardian."""
+"""Main API URL routing for Campus Guardian."""
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -18,7 +18,7 @@ from .views import (
     chatbot_view
 )
 
-# Router para los ViewSets
+# Register API viewsets in a single DRF router.
 router = DefaultRouter()
 router.register(r'usuarios', UsuarioViewSet, basename='usuario')
 router.register(r'incidencias', IncidenciaViewSet, basename='incidencia')
@@ -30,13 +30,13 @@ urlpatterns = [
     # Health check
     path('health/', health_check, name='health_check'),
     
-    # Autenticación endpoints
+    # Authentication endpoints.
     path('auth/login/', login_view, name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/register/', register, name='register'),
     path('auth/user/', UsuarioViewSet.as_view({'get': 'me'}), name='current_user'),
     
-    # Endpoints para administrador
+    # Admin-only user management endpoints.
     path('admin/usuarios/', listar_usuarios, name='admin_listar_usuarios'),
     path('admin/usuarios/seguridad/', crear_usuario_seguridad, name='admin_crear_seguridad'),
     path('admin/usuarios/<int:pk>/', eliminar_usuario, name='admin_eliminar_usuario'),
@@ -44,6 +44,6 @@ urlpatterns = [
     # Chatbot endpoint
     path('chatbot/', chatbot_view, name='chatbot'),
     
-    # Endpoints de los ViewSets
+    # Include all router-generated endpoints.
     path('', include(router.urls)),
 ]

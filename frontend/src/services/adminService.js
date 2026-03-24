@@ -2,7 +2,7 @@
 import api from '@/config/api'
 
 const adminService = {
-  // Listar usuarios con filtro opcional
+  // List users with optional filter
   async listarUsuarios(tipo = null, search = null) {
     const params = {}
     if (tipo) params.tipo = tipo
@@ -11,12 +11,12 @@ const adminService = {
     return api.get('/admin/usuarios/', { params })
   },
 
-  // Crear usuario de seguridad
+  // Create security staff user
   async crearUsuarioSeguridad(userData) {
     return api.post('/admin/usuarios/seguridad/', userData)
   },
 
-  // Eliminar usuario
+  // Delete user
   async eliminarUsuario(userId) {
     return api.delete(`/admin/usuarios/${userId}/`)
   }

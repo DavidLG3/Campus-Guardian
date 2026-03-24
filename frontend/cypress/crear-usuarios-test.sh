@@ -1,11 +1,11 @@
 #!/bin/bash
-# Script para crear usuarios de prueba en el backend antes de ejecutar los tests de Cypress
+# Script to create test users in the backend before running Cypress tests
 
 echo "==================================="
 echo "Creando usuarios de prueba..."
 echo "==================================="
 
-# Navegar al directorio del backend
+# Navigate to the backend directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/../../app_seguridad"
 
@@ -16,7 +16,7 @@ fi
 
 cd "$BACKEND_DIR"
 
-# Crear usuarios usando el comando de Django
+# Create test users using Django management command
 python manage.py crear_usuarios_test
 
 echo ""

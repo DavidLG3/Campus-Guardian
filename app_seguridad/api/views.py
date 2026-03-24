@@ -1,4 +1,4 @@
-"""views.py module: backend logic for Campus Guardian."""
+"""API views for authentication, incidents, alerts, and admin operations."""
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -25,7 +25,7 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def health_check(request):
     """
-    Endpoint de health check para mantener el servicio activo.
+    Lightweight health check used to verify the API is up.
     GET /api/health/
     """
     return Response({
@@ -38,9 +38,9 @@ def health_check(request):
 @permission_classes([AllowAny])
 def login_view(request):
     """
-    Endpoint para login de usuarios.
+    User login endpoint.
     POST /api/auth/login/
-    Espera: { "email": "user@example.com", "password": "password" }
+    Expected payload: { "email": "user@example.com", "password": "password" }
     """
     email = request.data.get('email')
     password = request.data.get('password')
@@ -51,7 +51,7 @@ def login_view(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Buscar usuario por email
+    # Find the username linked to the provided email.
     try:
         usuario = Usuario.objects.get(email=email)
         username = usuario.username
@@ -61,14 +61,14 @@ def login_view(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
     
-    # Autenticar
+    # Authenticate with Django's auth backend.
     user = authenticate(username=username, password=password)
     
     if user is not None:
-        # Generar tokens
+        # Generate access and refresh tokens.
         refresh = RefreshToken.for_user(user)
         
-        # Usar el serializer para obtener todos los datos del usuario
+        # Return the full user payload through the serializer.
         serializer = UsuarioSerializer(user, context={'request': request})
         
         return Response({
@@ -87,7 +87,7 @@ def login_view(request):
 @permission_classes([AllowAny])
 def register(request):
     """
-    Endpoint para registrar nuevos usuarios.
+    Register a new user account.
     POST /api/auth/register/
     """
     serializer = RegisterSerializer(data=request.data)
@@ -102,50 +102,50 @@ def register(request):
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para gestionar usuarios.
-    - list: Listar todos los usuarios (solo admin)
-    - retrieve: Ver perfil de usuario
-    - update: Actualizar perfil
-    - destroy: Eliminar usuario (solo admin)
+    ViewSet to manage users.
+    - list: List all users (admin only)
+    - retrieve: Get user profile
+    - update: Update profile
+    - destroy: Delete user (admin only)
     """
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     
     def get_permissions(self):
-        """Configurar permisos según la acción"""
+        """Set permissions dynamically based on the current action."""
         if self.action in ['list', 'destroy']:
-            # Solo staff puede listar todos o eliminar
+            # Only admins can list all users or delete accounts.
             permission_classes = [IsAuthenticated, permissions.IsAdminUser]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
     
     def update(self, request, *args, **kwargs):
-        """Sobrescribir update para usar partial=True siempre"""
+        """Force partial updates for all update calls."""
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
     
     def partial_update(self, request, *args, **kwargs):
-        """Sobrescribir partial_update para asegurar partial=True"""
+        """Keep partial update behavior explicit and consistent."""
         kwargs['partial'] = True
         return super().partial_update(request, *args, **kwargs)
     
     @action(detail=False, methods=['get'])
     def me(self, request):
-        """Obtener información del usuario actual"""
+        """Return the current authenticated user."""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def mis_incidencias(self, request):
-        """Obtener incidencias del usuario actual"""
+        """Return incidents reported by the current user."""
         incidencias = Incidencia.objects.filter(usuario=request.user)
         serializer = IncidenciaSerializer(incidencias, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def mis_alertas(self, request):
-        """Obtener alertas del usuario actual"""
+        """Return alerts assigned to the current user."""
         alertas = Alerta.objects.filter(usuario=request.user).order_by('-fecha_creacion')
         serializer = AlertaSerializer(alertas, many=True)
         return Response(serializer.data)
@@ -153,17 +153,17 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
 class IncidenciaViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para gestionar incidencias.
-    - list: Listar todas las incidencias
-    - create: Crear nueva incidencia
-    - retrieve: Ver detalle de incidencia
-    - update: Actualizar incidencia
-    - destroy: Eliminar incidencia
+    ViewSet to manage incidents.
+    - list: List incidents
+    - create: Create a new incident
+    - retrieve: Get incident details
+    - update: Update incident data
+    - destroy: Delete an incident
     """
     queryset = Incidencia.objects.all().order_by('-fecha_reporte')
     
     def get_permissions(self):
-        """Permitir lectura sin autenticación, escritura requiere autenticación"""
+        """Allow public read access, but require auth for writes."""
         if self.action in ['list', 'retrieve']:
             permission_classes = [AllowAny]
         else:
@@ -171,25 +171,25 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def get_serializer_class(self):
-        """Usar serializer diferente para creación"""
+        """Use a dedicated serializer when creating incidents."""
         if self.action == 'create':
             return IncidenciaCreateSerializer
         return IncidenciaSerializer
     
     def get_queryset(self):
-        """Retornar todas las incidencias ordenadas por fecha"""
+        """Return incidents ordered by newest first."""
         return Incidencia.objects.all().order_by('-fecha_reporte')
     
     def create(self, request, *args, **kwargs):
-        """Crear incidencia y retornar respuesta completa con todos los campos"""
-        # Validar que solo ciudadanos puedan crear incidencias
+        """Create an incident and return a fully serialized response."""
+        # Only citizen users can report incidents.
         if request.user.tipo != 'normal':
             return Response(
                 {'error': 'Solo los ciudadanos pueden reportar incidencias'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Extraer archivos del request
+        # Extract uploaded files from the multipart request.
         archivos = request.FILES.getlist('archivos')
         print(f"\n{'='*60}")
         print(f"📁 ARCHIVOS RECIBIDOS: {len(archivos)}")
@@ -199,7 +199,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             print(f"     Tamaño: {archivo.size / (1024*1024):.2f} MB")
         print(f"{'='*60}\n")
         
-        # Copiar datos del request sin los archivos para el serializer
+        # Build serializer input without file objects.
         data = request.data.copy()
         if 'archivos' in data:
             del data['archivos']
@@ -209,11 +209,11 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             incidencia = serializer.save(usuario=request.user)
             
-            # Procesar archivos manualmente
+            # Process uploads manually to control Cloudinary behavior.
             archivos_guardados = 0
             for archivo in archivos:
                 try:
-                    # Determinar tipo basado en el content_type
+                    # Infer file type from content-type.
                     content_type = archivo.content_type
                     print(f"\n🔍 Procesando archivo: {archivo.name} ({content_type})")
                     
@@ -226,10 +226,11 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     else:
                         print(f"⚠️  Tipo de archivo no soportado: {content_type}")
                         continue  # Ignorar archivos que no sean imágenes o videos
+                        # Skip unsupported file types.
                     
                     print(f"💾 Guardando como: {tipo} (resource_type={resource_type})")
                     
-                    # Subir directamente a Cloudinary con el resource_type correcto
+                    # Upload directly to Cloudinary with the correct resource type.
                     import cloudinary.uploader
                     from django.core.files.uploadedfile import InMemoryUploadedFile
                     
@@ -244,7 +245,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     print(f"✅ Cloudinary upload exitoso: {cloudinary_url}")
                     print(f"   Public ID: {public_id}")
                     
-                    # Crear el objeto ArchivoIncidencia con el public_id de Cloudinary
+                    # Persist file metadata linked to the new incident.
                     archivo_obj = ArchivoIncidencia.objects.create(
                         incidencia=incidencia,
                         tipo=tipo,
@@ -259,11 +260,11 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     print(f"❌ ERROR al procesar archivo {archivo.name}: {str(e)}")
                     import traceback
                     traceback.print_exc()
-                    # Continuar con los demás archivos
+                    # Continue processing remaining files even if one fails.
             
             print(f"\n📊 RESUMEN: {archivos_guardados}/{len(archivos)} archivos guardados correctamente\n")
             
-            # Usar el serializer completo para la respuesta
+            # Return the full incident payload expected by the frontend.
             response_serializer = IncidenciaSerializer(incidencia, context={'request': request})
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             
@@ -277,14 +278,14 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             )
     
     def perform_create(self, serializer):
-        """Asignar automáticamente el usuario actual al crear incidencia"""
-        # Establecer valores por defecto
+        """Attach the current user automatically on incident creation."""
+        # Apply default ownership values during creation.
         incidencia = serializer.save(usuario=self.request.user)
         return incidencia
     
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def cambiar_estado(self, request, pk=None):
-        """Cambiar estado de una incidencia (solo usuarios de seguridad)"""
+        """Update incident status (security staff only)."""
         if request.user.tipo != 'seguridad' and not request.user.is_staff:
             return Response(
                 {"detail": "Solo usuarios de seguridad pueden cambiar el estado"},
@@ -294,7 +295,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
         incidencia = self.get_object()
         nuevo_estado = request.data.get('estado')
         
-        # Mapear estados del frontend al backend
+        # Map frontend status labels to backend enum values.
         estado_map = {
             'abierta': 'pendiente',
             'en_progreso': 'en_proceso',
@@ -309,7 +310,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Si se marca como "en_proceso", verificar que no esté ya asignada a otro usuario
+        # If set to in-progress, ensure it is not assigned to someone else.
         if estado_backend == 'en_proceso':
             if incidencia.asignado_a and incidencia.asignado_a != request.user:
                 return Response(
@@ -317,7 +318,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Verificar que el usuario no tenga otra incidencia en progreso
+            # A staff member can only handle one in-progress incident at a time.
             incidencias_en_progreso = Incidencia.objects.filter(
                 asignado_a=request.user,
                 estado='en_proceso'
@@ -336,10 +337,10 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Asignar al usuario actual
+            # Assign ownership to the current user.
             incidencia.asignado_a = request.user
         elif estado_backend == 'pendiente':
-            # Si se vuelve a abrir, liberar la asignación
+            # Re-opening the incident clears assignment.
             incidencia.asignado_a = None
         
         incidencia.estado = estado_backend
@@ -349,7 +350,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def resolver(self, request, pk=None):
-        """Resolver una incidencia con nota (solo personal de seguridad)"""
+        """Resolve an incident with a mandatory resolution note."""
         if request.user.tipo != 'seguridad' and not request.user.is_staff:
             return Response(
                 {"detail": "Solo personal de seguridad puede resolver incidencias"},
@@ -365,7 +366,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Actualizar la incidencia
+        # Save resolution metadata.
         incidencia.estado = 'resuelta'
         incidencia.nota_resolucion = nota
         incidencia.resuelto_por = request.user
@@ -378,7 +379,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def por_tipo(self, request):
-        """Filtrar incidencias por tipo"""
+        """Filter incidents by type."""
         tipo = request.query_params.get('tipo', None)
         if tipo:
             incidencias = self.get_queryset().filter(tipo=tipo)
@@ -390,7 +391,7 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def por_estado(self, request):
-        """Filtrar incidencias por estado"""
+        """Filter incidents by status."""
         estado = request.query_params.get('estado', None)
         if estado:
             incidencias = self.get_queryset().filter(estado=estado)
@@ -403,12 +404,12 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def mapa(self, request):
         """
-        Obtener incidencias en formato GeoJSON para Leaflet.
-        Endpoint especial para mostrar todas las incidencias en el mapa.
+        Return incidents as GeoJSON for Leaflet map rendering.
+        This endpoint is optimized for map visualization.
         """
         incidencias = self.get_queryset()
         
-        # Crear estructura GeoJSON
+        # Build a valid GeoJSON FeatureCollection.
         features = []
         for incidencia in incidencias:
             feature = {
@@ -440,12 +441,12 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
 
 class AlertaViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para gestionar alertas.
+    ViewSet to manage user alerts.
     """
     serializer_class = AlertaSerializer
     
     def get_permissions(self):
-        """Permitir lectura sin autenticación, escritura requiere autenticación"""
+        """Allow public reads, require auth for write operations."""
         if self.action in ['list', 'retrieve']:
             permission_classes = [AllowAny]
         else:
@@ -453,22 +454,21 @@ class AlertaViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def get_queryset(self):
-        """Retornar solo las alertas del usuario actual ordenadas por fecha"""
+        """Return alerts for the current user, newest first."""
         if self.request.user.is_authenticated:
             return Alerta.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
         return Alerta.objects.none()
     
     def perform_create(self, serializer):
         """
-        Crear alerta. Si no hay incidencia, crear una genérica.
+        Create an alert linked to the current user.
         """
-        # Por ahora, las alertas requieren incidencia
-        # Necesitarás crear una incidencia primero o modificar el modelo
+        # Alerts currently depend on an incident relation.
         serializer.save(usuario=self.request.user)
     
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def marcar_leida(self, request, pk=None):
-        """Marcar alerta como leída"""
+        """Mark an alert as read."""
         alerta = self.get_object()
         alerta.estado = 'leida'
         alerta.save()
@@ -477,7 +477,7 @@ class AlertaViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def pendientes(self, request):
-        """Obtener alertas pendientes del usuario"""
+        """Return pending alerts for the current user."""
         alertas = self.get_queryset().filter(estado='pendiente')
         serializer = self.get_serializer(alertas, many=True)
         return Response(serializer.data)
@@ -485,22 +485,22 @@ class AlertaViewSet(viewsets.ModelViewSet):
 
 class NotificacionViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para gestionar notificaciones de ciudadanos
+    ViewSet to manage citizen notifications.
     """
     serializer_class = NotificacionSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """Retornar solo notificaciones del usuario actual"""
+        """Return notifications for the current authenticated user."""
         queryset = Notificacion.objects.filter(usuario=self.request.user).order_by('-fecha_creacion')
-        # Logging desactivado para no llenar los logs
+        # Keep logging disabled to avoid noisy production logs.
         # print(f"[NOTIF] Usuario solicitante: {self.request.user.username}")
         # print(f"[NOTIF] Notificaciones encontradas: {queryset.count()}")
         return queryset
     
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def marcar_leida(self, request, pk=None):
-        """Marcar notificación como leída"""
+        """Mark a notification as read."""
         notificacion = self.get_object()
         notificacion.leida = True
         notificacion.save()
@@ -509,25 +509,25 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def no_leidas(self, request):
-        """Obtener notificaciones no leídas del usuario"""
+        """Return unread notifications for the current user."""
         notificaciones = self.get_queryset().filter(leida=False)
         serializer = self.get_serializer(notificaciones, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def count_no_leidas(self, request):
-        """Contar notificaciones no leídas"""
+        """Return unread notifications count."""
         count = self.get_queryset().filter(leida=False).count()
         return Response({'count': count})
 
 
 class ComentarioViewSet(viewsets.ModelViewSet):
-    """ViewSet para comentarios de incidencias"""
+    """ViewSet for incident comments."""
     serializer_class = ComentarioSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """Filtra comentarios por incidencia si se proporciona el parámetro"""
+        """Filter comments by incident when the query param is present."""
         queryset = Comentario.objects.all()
         incidencia_id = self.request.query_params.get('incidencia', None)
         if incidencia_id:
@@ -535,38 +535,38 @@ class ComentarioViewSet(viewsets.ModelViewSet):
         return queryset.select_related('usuario', 'incidencia')
     
     def perform_create(self, serializer):
-        """Asigna automáticamente el usuario actual al crear el comentario"""
+        """Attach the current user when creating a comment."""
         serializer.save(usuario=self.request.user)
 
 
-# Endpoints para el administrador
+# Admin endpoints.
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def listar_usuarios(request):
     """
-    Listar todos los usuarios, con filtrado opcional por tipo.
+    List users with optional type-based filtering.
     GET /api/admin/usuarios/?tipo=normal|seguridad
-    Solo accesible para administradores.
+    Admin access only.
     """
-    # Verificar que el usuario es administrador
+    # Ensure the requester is an admin.
     if request.user.tipo != 'admin':
         return Response(
             {"message": "No tienes permisos para acceder a este recurso"},
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Obtener parámetro de filtro
+    # Read optional filter parameters.
     tipo = request.query_params.get('tipo', None)
     search = request.query_params.get('search', None)
     
-    # Filtrar usuarios
+    # Build base queryset.
     usuarios = Usuario.objects.all().order_by('-date_joined')
     
     if tipo:
         usuarios = usuarios.filter(tipo=tipo)
     
     if search:
-        # Buscar por nombre, email o username
+        # Search by name, email, or username.
         from django.db.models import Q
         usuarios = usuarios.filter(
             Q(first_name__icontains=search) |
@@ -583,10 +583,10 @@ def listar_usuarios(request):
 @permission_classes([IsAuthenticated])
 def crear_usuario_seguridad(request):
     """
-    Crear un nuevo usuario de seguridad.
+    Create a new security-staff user.
     POST /api/admin/usuarios/seguridad/
-    Solo accesible para administradores.
-    Espera: {
+    Admin access only.
+    Expected payload: {
         "username": "...",
         "email": "...",
         "password": "...",
@@ -595,14 +595,14 @@ def crear_usuario_seguridad(request):
         "telefono": "..." (opcional)
     }
     """
-    # Verificar que el usuario es administrador
+    # Ensure the requester is an admin.
     if request.user.tipo != 'admin':
         return Response(
             {"message": "No tienes permisos para acceder a este recurso"},
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Validar datos requeridos
+    # Validate required fields.
     required_fields = ['username', 'email', 'password', 'first_name', 'last_name']
     for field in required_fields:
         if field not in request.data:
@@ -611,21 +611,21 @@ def crear_usuario_seguridad(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    # Verificar que el username no existe
+    # Check username uniqueness.
     if Usuario.objects.filter(username=request.data['username']).exists():
         return Response(
             {"message": "El nombre de usuario ya está en uso"},
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Verificar que el email no existe
+    # Check email uniqueness.
     if Usuario.objects.filter(email=request.data['email']).exists():
         return Response(
             {"message": "El email ya está en uso"},
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Crear usuario de seguridad
+    # Create the security user.
     try:
         usuario = Usuario.objects.create_user(
             username=request.data['username'],
@@ -656,11 +656,11 @@ def crear_usuario_seguridad(request):
 @permission_classes([IsAuthenticated])
 def eliminar_usuario(request, pk):
     """
-    Eliminar un usuario.
+    Delete a user account.
     DELETE /api/admin/usuarios/{id}/
-    Solo accesible para administradores.
+    Admin access only.
     """
-    # Verificar que el usuario es administrador
+    # Ensure the requester is an admin.
     if request.user.tipo != 'admin':
         return Response(
             {"message": "No tienes permisos para acceder a este recurso"},
@@ -670,14 +670,14 @@ def eliminar_usuario(request, pk):
     try:
         usuario = Usuario.objects.get(pk=pk)
         
-        # No permitir eliminar al propio administrador
+        # Prevent admins from deleting themselves.
         if usuario.id == request.user.id:
             return Response(
                 {"message": "No puedes eliminar tu propia cuenta"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # No permitir eliminar otros administradores
+        # Prevent deleting other admin accounts.
         if usuario.tipo == 'admin':
             return Response(
                 {"message": "No puedes eliminar otros administradores"},
@@ -700,9 +700,9 @@ def eliminar_usuario(request, pk):
 @permission_classes([IsAuthenticated])
 def chatbot_view(request):
     """
-    Endpoint para el chatbot con IA usando Google Gemini API REST.
+    AI chatbot endpoint backed by Google Gemini REST API.
     POST /api/chatbot/
-    Espera: { "message": "mensaje del usuario", "history": [...] }
+    Expected payload: { "message": "user message", "history": [...] }
     """
     import requests as req
     from django.conf import settings
@@ -717,11 +717,11 @@ def chatbot_view(request):
         )
     
     try:
-        # Obtener información del usuario
+        # Pull minimal user context for prompt personalization.
         user_tipo = request.user.tipo if hasattr(request.user, 'tipo') else 'normal'
         user_nombre = request.user.nombre if hasattr(request.user, 'nombre') else 'Usuario'
         
-        # Contexto del sistema simplificado para reducir tokens y tiempo de respuesta
+        # Keep system prompt compact to reduce latency and token usage.
         contexto_sistema = f"""Eres El Guardián de Campus Guardian (app seguridad UAM).
 
 TIPOS: 🔵Normal (reporta) 🛡️Seguridad (gestiona) 👑Admin (administra)
@@ -732,19 +732,19 @@ MENÚ: Nueva Incidencia | Ver Incidencias | Mis Incidencias | Dashboard | Notifi
 Usuario: {user_tipo} ({user_nombre})
 Responde en español, conciso. Si emergencia: llamar 112."""
         
-        # Construir el prompt completo con historial MUY limitado
+        # Build prompt with very limited chat history.
         prompt_completo = contexto_sistema + "\n\n"
         
-        # Agregar historial reciente (solo últimos 2 mensajes)
+        # Include only the two most recent messages.
         for msg in historial[-2:]:
             sender = "U" if msg.get("sender") == "user" else "G"
             texto = msg.get("text", "").replace("<br>", " ").replace("<strong>", "").replace("</strong>", "")[:100]  # Limitar a 100 caracteres
             prompt_completo += f"{sender}: {texto}\n"
         
-        # Agregar mensaje actual
+        # Append the current user message.
         prompt_completo += f"Usuario: {mensaje_usuario}\nGuardian:"
         
-        # Llamar a la API REST de Gemini con modelo más reciente
+        # Call Gemini REST API using a fast model for chat.
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
         
         payload = {
@@ -760,10 +760,10 @@ Responde en español, conciso. Si emergencia: llamar 112."""
             }
         }
         
-        # Llamada con timeout más corto
+        # Keep request timeout short to avoid hanging responses.
         response = req.post(api_url, json=payload, timeout=30)
         
-        # Debug: imprimir respuesta si hay error
+        # Print API details only when debugging failed calls.
         if response.status_code != 200:
             print(f"Error de API: {response.status_code}")
             print(f"Respuesta: {response.text}")
@@ -772,7 +772,7 @@ Responde en español, conciso. Si emergencia: llamar 112."""
         
         result = response.json()
         
-        # Extraer la respuesta del modelo
+        # Extract assistant reply from the API payload.
         if 'candidates' in result and len(result['candidates']) > 0:
             respuesta_texto = result['candidates'][0]['content']['parts'][0]['text']
         else:

@@ -4,31 +4,31 @@ import api from '@/config/api'
 class KeepAliveService {
   constructor() {
     this.intervalId = null
-    this.pingInterval = 10 * 60 * 1000 // 10 minutos en milisegundos
+    this.pingInterval = 10 * 60 * 1000 // 10 minutes in milliseconds
   }
 
   /**
-   * Inicia el servicio de keep-alive que hace ping al backend cada 10 minutos
+   * Starts the keep-alive service that pings the backend every 10 minutes
    */
   start() {
     if (this.intervalId) {
-      console.log('Keep-alive service already running')
+    console.log('Keep-alive service already running')
       return
     }
 
     console.log('Starting keep-alive service (ping every 10 minutes)')
     
-    // Hacer ping inmediatamente
+    // Ping immediately
     this.ping()
     
-    // Configurar intervalo para pings periódicos
+    // Set up interval for periodic pings
     this.intervalId = setInterval(() => {
       this.ping()
     }, this.pingInterval)
   }
 
   /**
-   * Detiene el servicio de keep-alive
+   * Stops the keep-alive service
    */
   stop() {
     if (this.intervalId) {
@@ -39,20 +39,20 @@ class KeepAliveService {
   }
 
   /**
-   * Hace un ping al backend para mantenerlo activo
+   * Pings the backend to keep it active
    */
   async ping() {
     try {
-      // Usar un endpoint ligero que no requiera autenticación
-      // Si no existe un endpoint de health check, usa cualquier endpoint GET público
+      // Use a lightweight endpoint that does not require authentication
+      // If no health check endpoint exists, use any public GET endpoint
       const response = await api.get('/health/', { timeout: 5000 })
       console.log('Keep-alive ping successful:', new Date().toLocaleTimeString())
       return response.data
     } catch (error) {
-      // Si el endpoint /health/ no existe, intentar con otro endpoint
+      // If the /health/ endpoint does not exist, try another endpoint
       if (error.response?.status === 404) {
         try {
-          // Intentar con un endpoint que seguramente existe
+          // Try with an endpoint that surely exists
           await api.head('/', { timeout: 5000 })
           console.log('Keep-alive ping successful (fallback):', new Date().toLocaleTimeString())
         } catch (fallbackError) {
@@ -65,12 +65,12 @@ class KeepAliveService {
   }
 
   /**
-   * Verifica si el servicio está corriendo
+   * Checks if the service is running
    */
   isRunning() {
     return this.intervalId !== null
   }
 }
 
-// Exportar instancia singleton
+// Export singleton instance
 export default new KeepAliveService()

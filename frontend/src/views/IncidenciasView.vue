@@ -95,6 +95,7 @@ const filtroTipo = ref('')
 const isLoading = ref(false)
 const error = ref('')
 
+// Apply status/type filters over the store data.
 const incidenciasFiltradas = computed(() => {
   let filtered = incidenciaStore.incidencias
   
@@ -110,6 +111,7 @@ const incidenciasFiltradas = computed(() => {
 })
 
 function formatEstado(estado) {
+  // Map backend status keys to readable labels.
   const estados = {
     'abierta': 'Abierta',
     'en_progreso': 'En Progreso',
@@ -119,6 +121,7 @@ function formatEstado(estado) {
 }
 
 function formatTipo(tipo) {
+  // Normalize incident type names for card badges.
   const tipos = {
     'robo': 'Robo',
     'accidente': 'Accidente',
@@ -132,6 +135,7 @@ function formatTipo(tipo) {
 }
 
 function formatDate(dateString) {
+  // Format timestamps for Spanish locale display.
   const date = new Date(dateString)
   return date.toLocaleDateString('es-ES', {
     day: 'numeric',
@@ -142,11 +146,13 @@ function formatDate(dateString) {
   })
 }
 
+// Load incidents when the view is mounted.
 onMounted(async () => {
   isLoading.value = true
   error.value = ''
   
   try {
+    // Fetch the full list from the API via Pinia store.
     await incidenciaStore.fetchAll()
   } catch (err) {
     console.error('Error al cargar las incidencias:', err)

@@ -12,20 +12,20 @@ const authStore = useAuthStore()
 
 const handleStart = async () => {
   try {
-    // Verificar si hay token en cookies/localStorage
+    // Check if there is a token in cookies/localStorage
     const token = localStorage.getItem('token')
     
     if (token && authStore.isAuthenticated) {
-      // Si hay sesión activa, ir al dashboard
+      // If there is an active session, go to the dashboard.
       await router.replace('/dashboard')
     } else {
-      // Si no hay sesión, ir al login
-      await router.replace('/login')
+      // If there is no session, stay on the initial route.
+      await router.replace('/')
     }
   } catch (error) {
     console.error('Error en handleStart:', error)
-    // En caso de error, ir al login
-    router.replace('/login')
+    // In case of error, fall back to the initial route.
+    router.replace('/')
   }
 }
 </script>

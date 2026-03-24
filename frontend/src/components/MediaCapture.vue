@@ -1,6 +1,6 @@
 <template>
   <div class="media-capture">
-    <!-- Botones de acción -->
+    <!-- Action buttons -->
     <div v-if="!capturing" class="action-buttons">
       <button type="button" @click="selectFiles" class="btn-action">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -28,7 +28,7 @@
       </button>
     </div>
     
-    <!-- Input oculto para seleccionar archivos -->
+    <!-- Hidden input to select files -->
     <input 
       ref="fileInput" 
       type="file" 
@@ -38,12 +38,12 @@
       @change="handleFileSelect"
     />
     
-    <!-- Captura de foto -->
+    <!-- Take a picture -->
     <div v-if="capturing === 'photo'" class="capture-container">
       <video ref="photoVideo" autoplay playsinline class="video-preview"></video>
       <div class="capture-controls">
         <button type="button" @click="capturePhoto" class="btn-capture">
-          📸 Capturar
+          <font-awesome-icon :icon="['fas', 'circle-exclamation']" /> Capturar
         </button>
         <button type="button" @click="stopCapture" class="btn-cancel">
           Cancelar
@@ -51,7 +51,7 @@
       </div>
     </div>
     
-    <!-- Captura de video -->
+    <!-- Take a video -->
     <div v-if="capturing === 'video'" class="capture-container">
       <video ref="videoRecorder" autoplay playsinline class="video-preview"></video>
       <div class="capture-controls">
@@ -70,7 +70,7 @@
       </div>
     </div>
     
-    <!-- Preview de archivos seleccionados -->
+    <!-- Preview of selected files -->
     <div v-if="files.length > 0" class="files-preview">
       <h4>Archivos seleccionados ({{ files.length }})</h4>
       <div class="files-grid">
@@ -85,7 +85,7 @@
             <span class="file-size">{{ formatFileSize(file.size) }}</span>
           </div>
           <button type="button" @click="removeFile(index)" class="btn-remove" title="Eliminar">
-            ✕
+            <font-awesome-icon :icon="['fas', 'xmark']" />
           </button>
         </div>
       </div>
@@ -111,18 +111,18 @@ let mediaRecorder = null
 let recordedChunks = []
 let recordingInterval = null
 
-// Seleccionar archivos desde galería
+// Select files from gallery
 const selectFiles = () => {
   fileInput.value.click()
 }
 
 const handleFileSelect = (event) => {
   const selectedFiles = Array.from(event.target.files)
-  const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB para imágenes
-  const MAX_VIDEO_SIZE = 25 * 1024 * 1024 // 25MB para videos
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for photos
+  const MAX_VIDEO_SIZE = 25 * 1024 * 1024 // 25MB for videos
   
   selectedFiles.forEach(file => {
-    // Validar tamaño
+    // Validate size
     const isImage = file.type.startsWith('image/')
     const isVideo = file.type.startsWith('video/')
     const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE
@@ -146,13 +146,13 @@ const handleFileSelect = (event) => {
     })
   })
   
-  // Resetear input
+  // Reset input
   event.target.value = ''
   
   emitFiles()
 }
 
-// Iniciar captura de foto
+// Start picture taking
 const startPhotoCapture = async () => {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ 
@@ -161,7 +161,6 @@ const startPhotoCapture = async () => {
     })
     capturing.value = 'photo'
     
-    // Esperar al siguiente tick para que el video esté en el DOM
     setTimeout(() => {
       if (photoVideo.value) {
         photoVideo.value.srcObject = stream
@@ -173,7 +172,7 @@ const startPhotoCapture = async () => {
   }
 }
 
-// Capturar foto
+// Take photo
 const capturePhoto = () => {
   const video = photoVideo.value
   const canvas = document.createElement('canvas')
@@ -199,7 +198,7 @@ const capturePhoto = () => {
   }, 'image/jpeg', 0.9)
 }
 
-// Iniciar captura de video
+// Start recording
 const startVideoCapture = async () => {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ 
@@ -219,7 +218,7 @@ const startVideoCapture = async () => {
   }
 }
 
-// Iniciar grabación de video
+// Video recording
 const startRecording = () => {
   recordedChunks = []
   
@@ -228,7 +227,6 @@ const startRecording = () => {
   try {
     mediaRecorder = new MediaRecorder(stream, options)
   } catch (e) {
-    // Fallback si el formato no es soportado
     mediaRecorder = new MediaRecorder(stream)
   }
   
@@ -259,13 +257,13 @@ const startRecording = () => {
   recording.value = true
   recordingTime.value = 0
   
-  // Contador de tiempo
+  // Time counter
   recordingInterval = setInterval(() => {
     recordingTime.value++
   }, 1000)
 }
 
-// Detener grabación
+// Stop recording
 const stopRecording = () => {
   if (mediaRecorder && recording.value) {
     mediaRecorder.stop()
@@ -274,7 +272,7 @@ const stopRecording = () => {
   }
 }
 
-// Detener captura y liberar recursos
+// Free resources
 const stopCapture = () => {
   if (stream) {
     stream.getTracks().forEach(track => track.stop())
@@ -296,19 +294,17 @@ const stopCapture = () => {
   }
 }
 
-// Eliminar archivo
+// Delete file
 const removeFile = (index) => {
   URL.revokeObjectURL(files.value[index].preview)
   files.value.splice(index, 1)
   emitFiles()
 }
 
-// Emitir archivos al componente padre
 const emitFiles = () => {
   emit('files-selected', files.value.map(f => f.file))
 }
 
-// Formatear tamaño de archivo
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
@@ -317,7 +313,6 @@ const formatFileSize = (bytes) => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-// Limpiar recursos al desmontar
 onUnmounted(() => {
   stopCapture()
   files.value.forEach(file => {
@@ -325,7 +320,6 @@ onUnmounted(() => {
   })
 })
 
-// Exponer método para limpiar desde el padre
 defineExpose({
   clearFiles: () => {
     files.value.forEach(file => {

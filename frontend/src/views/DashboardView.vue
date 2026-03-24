@@ -1,9 +1,9 @@
 <template>
   <AppLayout>
     <div class="dashboard-content">
-      <!-- Dashboard para Ciudadanos -->
+      <!-- Dashboard for citizens -->
       <div v-if="authStore.isCiudadano" class="ciudadano-dashboard">
-        <!-- Acciones Rápidas -->
+        <!-- Quick actions -->
         <section class="acciones-rapidas">
           <div class="actions-grid">
             <router-link to="/incidencias/nueva" class="action-card">
@@ -28,7 +28,7 @@
           </div>
         </section>
 
-        <!-- Incidencias Activas Recientes -->
+        <!-- Recent active incidents -->
         <section class="incidencias-section">
           <h2>Incidencias Activas Recientes</h2>
           <div v-if="isLoading" class="loading">Cargando...</div>
@@ -69,7 +69,7 @@
           </div>
         </section>
 
-        <!-- Consejos de Seguridad -->
+        <!-- Security counsels -->
         <section class="consejos-seguridad">
           <h2>💡 Consejos de Seguridad</h2>
           <div class="consejos-list">
@@ -93,9 +93,9 @@
         </section>
       </div>
 
-      <!-- Dashboard para Seguridad -->
+      <!-- Security dashboard -->
       <div v-else class="seguridad-dashboard">
-        <!-- Mi Incidencia Asignada -->
+        <!-- Assigned incident -->
         <section v-if="miIncidenciaAsignada" class="mi-incidencia">
           <h2>Mi Incidencia Asignada</h2>
           <div class="incidencia-asignada" @click="$router.push(`/incidencias/${miIncidenciaAsignada.id}`)">
@@ -122,7 +122,7 @@
           </div>
         </section>
 
-        <!-- Incidencias Sin Asignar -->
+        <!-- Unassigned incidents -->
         <section class="incidencias-libres-section">
           <h2>Incidencias Sin Asignar</h2>
           <div v-if="isLoading" class="loading">Cargando...</div>
@@ -161,7 +161,7 @@
           </div>
         </section>
 
-        <!-- Estadísticas -->
+        <!-- Statistics -->
         <section class="estadisticas">
           <h2>Estadísticas</h2>
           <div class="stats-grid">
@@ -214,7 +214,7 @@ const incidenciaStore = useIncidenciaStore()
 
 const isLoading = ref(false)
 
-// Para ciudadanos: incidencias activas (todas excepto resueltas) ordenadas por más recientes
+// For citizens: active incidents (all except resolved) sorted by most recent
 const incidenciasActivas = computed(() => {
   const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
   return incidencias
@@ -223,7 +223,7 @@ const incidenciasActivas = computed(() => {
     .slice(0, 10) // Mostrar las 10 más recientes
 })
 
-// Para seguridad: mi incidencia asignada
+// For security: my assigned incident
 const miIncidenciaAsignada = computed(() => {
   if (!authStore.user?.id) return null
   const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
@@ -233,16 +233,16 @@ const miIncidenciaAsignada = computed(() => {
   )
 })
 
-// Para seguridad: incidencias sin asignar, ordenadas por más antiguas primero
+// For security: unassigned incidents, sorted by oldest first
 const incidenciasLibres = computed(() => {
   const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
   return incidencias
     .filter(i => !i.asignado_a && i.estado !== 'resuelta')
-    .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion)) // Más antiguas primero
-    .slice(0, 20) // Mostrar las 20 más antiguas
+    .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion)) // Oldest first
+    .slice(0, 20)
 })
 
-// Estadísticas para operadores
+// Statistics for operators
 const estadisticas = computed(() => {
   const incidencias = Array.isArray(incidenciaStore.incidencias) ? incidenciaStore.incidencias : []
   return {
@@ -368,7 +368,7 @@ section {
   margin-bottom: 32px;
 }
 
-/* Acciones Rápidas */
+/* Quick actions */
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -403,7 +403,7 @@ section {
   display: block;
 }
 
-/* Incidencias */
+/* Incidents */
 .incidencias-list {
   display: flex;
   flex-direction: column;
@@ -580,7 +580,7 @@ section {
   border-color: #00ff88;
 }
 
-/* Estadísticas */
+/* Statistics */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -626,7 +626,6 @@ section {
   margin: 0;
 }
 
-/* Consejos de Seguridad */
 .consejos-list {
   display: flex;
   flex-direction: column;
@@ -656,7 +655,6 @@ section {
   line-height: 1.5;
 }
 
-/* Estados */
 .loading, .empty {
   text-align: center;
   padding: 32px 16px;

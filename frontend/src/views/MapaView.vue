@@ -4,7 +4,7 @@
       <div class="mapa-content">
         <h1>Mapa de Incidencias</h1>
         
-        <!-- Pestañas -->
+        <!-- Windows -->
         <div class="tabs-container">
           <button 
             :class="['tab-btn', { active: activeTab === 'activas' }]" 
@@ -20,7 +20,7 @@
           </button>
         </div>
         
-        <!-- Filtro por tipo -->
+        <!-- Filter by type -->
         <div class="filter-container">
           <label for="tipo-filter">Filtrar por tipo:</label>
           <select id="tipo-filter" v-model="filtroTipo" class="filter-select">
@@ -69,21 +69,21 @@ let markersLayer = null
 const defaultCenter = [40.5472, -3.6894] // Campus de Cantoblanco, UAM
 const defaultZoom = 13
 
-// Computed para filtrar incidencias según pestaña activa y filtro
+// Computed to filter incidents according to active tab and filter
 const incidenciasFiltradas = computed(() => {
   let incidencias = []
   
   if (activeTab.value === 'activas') {
-    // Mostrar incidencias abiertas y en progreso
+    // Show open and ongoing issues
     incidencias = incidenciaStore.incidencias.filter(i => 
       i.estado === 'abierta' || i.estado === 'en_progreso'
     )
   } else {
-    // Mostrar incidencias resueltas
+    // Show resolved issues
     incidencias = incidenciaStore.incidencias.filter(i => i.estado === 'resuelta')
   }
   
-  // Aplicar filtro por tipo si está seleccionado
+  // Apply filter by type if selected
   if (filtroTipo.value) {
     incidencias = incidencias.filter(i => i.tipo === filtroTipo.value)
   }
@@ -91,25 +91,23 @@ const incidenciasFiltradas = computed(() => {
   return incidencias
 })
 
-// Watch para actualizar marcadores cuando cambie el filtro o la pestaña
+// Watch to update bookmarks when the filter or tab changes
 watch([activeTab, filtroTipo, () => incidenciaStore.incidencias], () => {
   addMarkersToMap()
 }, { deep: true })
 
 function initMap() {
-  // Crear el mapa
+  // Create the map
   map = L.map(mapRef.value).setView(defaultCenter, defaultZoom)
   
-  // Añadir capa de tiles de OpenStreetMap
+  // Add OpenStreetMap tile layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
   }).addTo(map)
   
-  // Crear capa para los marcadores
   markersLayer = L.layerGroup().addTo(map)
   
-  // Cargar incidencias
   loadIncidencias()
 }
 
@@ -119,15 +117,13 @@ async function loadIncidencias() {
     addMarkersToMap()
   } catch (error) {
     console.error('Error cargando incidencias:', error)
-    // No relanzar el error, solo loguearlo
   }
 }
 
 function addMarkersToMap() {
-  // Limpiar marcadores existentes
   markersLayer.clearLayers()
   
-  // Añadir marcador por cada incidencia filtrada
+  // Add marker for each filtered incident
   incidenciasFiltradas.value.forEach(incidencia => {
     if (incidencia.latitud && incidencia.longitud) {
       const icon = getIconForIncident(incidencia.tipo)
@@ -186,16 +182,16 @@ function formatDate(dateString) {
   return date.toLocaleString('es-ES')
 }
 
-// Función global para navegar desde el popup
+// Global function to navigate from the popup
 function navigateToIncidencia(id) {
   router.push({ name: 'DetalleIncidencia', params: { id: id } })
 }
 
-// Hacer la función accesible globalmente
+// Make the function globally accessible
 window.navigateToIncidencia = navigateToIncidencia
 
 onMounted(() => {
-  // Pequeño delay para asegurar que el DOM está listo
+  // A small delay to ensure the DOM is ready
   setTimeout(initMap, 100)
 })
 
@@ -423,7 +419,7 @@ h1 {
 </style>
 
 <style>
-/* Estilos globales para los popups de Leaflet */
+/* Global styles for Leaflet popups */
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   border: 2px solid #e0e0e0 !important;
