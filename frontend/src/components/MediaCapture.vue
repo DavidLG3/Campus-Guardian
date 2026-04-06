@@ -85,7 +85,7 @@
             <span class="file-size">{{ formatFileSize(file.size) }}</span>
           </div>
           <button type="button" @click="removeFile(index)" class="btn-remove" title="Eliminar">
-            <font-awesome-icon :icon="['fas', 'xmark']" />
+            <span aria-hidden="true">&times;</span>
           </button>
         </div>
       </div>
