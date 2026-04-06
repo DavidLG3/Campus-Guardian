@@ -1,7 +1,8 @@
 """signals.py module: backend logic for Campus Guardian."""
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
-from .models import Incidencia, Usuario, Alerta, Notificacion
+from .models import Incidencia, Usuario, Alerta, Notificacion, ArchivoIncidencia
+import cloudinary.uploader
 
 # Temporary storage for previous incident state
 _estado_anterior = {}
@@ -68,3 +69,48 @@ def crear_alertas_y_notificaciones(sender, instance, created, **kwargs):
         # Clean up the previous state
         if instance.pk in _estado_anterior:
             del _estado_anterior[instance.pk]
+
+
+@receiver(pre_save, sender=Usuario)
+def eliminar_avatar_anterior_en_cambio(sender, instance, **kwargs):
+    """Delete old profile photo from storage when user uploads a new one."""
+    if not instance.pk:
+        return
+
+    try:
+        usuario_anterior = Usuario.objects.get(pk=instance.pk)
+    except Usuario.DoesNotExist:
+        return
+
+    foto_anterior = usuario_anterior.foto_perfil
+    foto_nueva = instance.foto_perfil
+
+    # If avatar changed, remove previous file from storage (Cloudinary in prod).
+    if foto_anterior and foto_anterior != foto_nueva:
+        foto_anterior.delete(save=False)
+
+
+@receiver(post_delete, sender=Usuario)
+def eliminar_avatar_al_borrar_usuario(sender, instance, **kwargs):
+    """Delete user profile photo from storage when the user is deleted."""
+    if instance.foto_perfil:
+        instance.foto_perfil.delete(save=False)
+
+
+@receiver(post_delete, sender=ArchivoIncidencia)
+def eliminar_archivo_cloudinary_al_borrar(sender, instance, **kwargs):
+    """Delete Cloudinary asset when an incident attachment is removed."""
+    if not instance.cloudinary_public_id:
+        return
+
+    resource_type = 'video' if instance.tipo == 'video' else 'image'
+
+    try:
+        cloudinary.uploader.destroy(
+            instance.cloudinary_public_id,
+            resource_type=resource_type,
+            invalidate=True,
+        )
+    except Exception as exc:
+        # Keep DB deletion flow resilient even if external provider fails.
+        print(f"[CLOUDINARY] Error eliminando recurso {instance.cloudinary_public_id}: {exc}")
