@@ -285,6 +285,12 @@ async function handleSubmit() {
     console.error('📋 Respuesta del servidor:', err.response?.data)
     console.error('🔢 Status code:', err.response?.status)
     console.error('📄 Headers:', err.response?.headers)
+
+    // Timeout is common on slow mobile uploads; backend may still finish processing.
+    if (err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'))) {
+      error.value = 'La subida está tardando más de lo esperado. Es posible que la incidencia se haya creado igualmente. Revisa la lista de incidencias antes de volver a enviarla.'
+      return
+    }
     
     // Attempt to extract a useful error message
     let errorMsg = 'Error al reportar la incidencia'

@@ -29,7 +29,7 @@ a:hover {
   color: var(--text-secondary);
 }
 
-/* Sleek modern buttons with animations */
+/* Stable button styles without overlay animation */
 button, .btn {
   font-family: inherit;
   font-size: 15px;
@@ -41,36 +41,22 @@ button, .btn {
   background: transparent;
   color: var(--text-dark);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
   white-space: nowrap;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 button::before, .btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: var(--text-dark);
-  transition: width var(--transition-base), height var(--transition-base);
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}
-
-button:hover::before, .btn:hover::before {
-  width: 300px;
-  height: 300px;
+  content: none !important;
 }
 
 button:hover, .btn:hover {
-  color: var(--bg-white);
+  color: var(--text-dark);
   border-color: var(--text-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background-color: rgba(0, 0, 0, 0.06);
+  transform: none;
+  box-shadow: none;
 }
 
 button > *, .btn > * {
@@ -79,7 +65,8 @@ button > *, .btn > * {
 }
 
 button:active:not(:disabled), .btn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: none;
+  background-color: rgba(0, 0, 0, 0.12);
 }
 
 button:disabled, .btn:disabled {

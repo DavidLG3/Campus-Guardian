@@ -239,8 +239,8 @@ function getInitials() {
 function formatRole(role) {
   const roles = {
     'admin': 'Administrador',
-    'operador': 'Operador',
-    'ciudadano': 'Ciudadano'
+    'seguridad': 'Personal de Seguridad',
+    'normal': 'Miembro'
   }
   return roles[role] || role
 }

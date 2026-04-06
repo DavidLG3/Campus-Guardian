@@ -195,7 +195,6 @@
                 ></textarea>
               </div>
               <div class="comentario-actions">
-                <span class="hint">Ctrl + Enter para enviar</span>
                 <button 
                   @click="submitComentario" 
                   :disabled="!nuevoComentario.trim() || isSubmittingComentario"
@@ -1368,11 +1367,6 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.comentario-actions .hint {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
 }
 
 .btn-submit-comentario {

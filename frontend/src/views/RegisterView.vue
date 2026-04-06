@@ -24,7 +24,7 @@
       
       <form @submit.prevent="handleRegister">
         <div class="form-group">
-          <label for="nombre">Nombre completo</label>
+          <label for="nombre">Nombre de usuario</label>
           <input
             id="nombre"
             v-model="formData.nombre"

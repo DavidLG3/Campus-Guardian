@@ -73,7 +73,7 @@
           </canvas>
         </div>
         <div class="crop-instructions">
-          <p>📱 Arrastra para posicionar • 🔍 Rueda del ratón para zoom</p>
+          <p>Arrastra para posicionar</p>
         </div>
         <div class="preview-actions">
           <button @click="resetImage" class="btn-secondary">Cambiar Foto</button>

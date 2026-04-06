@@ -14,7 +14,8 @@ export default {
   
   // Create new incident
   create(incidencia) {
-    return apiClient.post('/incidencias/', incidencia)
+    // Uploads from mobile networks can take longer than default API timeout.
+    return apiClient.post('/incidencias/', incidencia, { timeout: 120000 })
   },
   
   // Update incident
