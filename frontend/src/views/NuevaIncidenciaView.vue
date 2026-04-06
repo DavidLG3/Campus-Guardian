@@ -218,6 +218,26 @@ async function handleSubmit() {
   isLoading.value = true
   
   try {
+    // Validate file sizes before sending
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024  // 10 MB
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024  // 50 MB
+    
+    if (selectedFiles.value && selectedFiles.value.length > 0) {
+      for (const file of selectedFiles.value) {
+        const sizeMB = file.size / (1024 * 1024)
+        if (file.type.startsWith('image/') && file.size > MAX_IMAGE_SIZE) {
+          error.value = `La imagen "${file.name}" es demasiado grande (${sizeMB.toFixed(2)} MB). Máximo permitido: 10 MB`
+          isLoading.value = false
+          return
+        }
+        if (file.type.startsWith('video/') && file.size > MAX_VIDEO_SIZE) {
+          error.value = `El video "${file.name}" es demasiado grande (${sizeMB.toFixed(2)} MB). Máximo permitido: 50 MB`
+          isLoading.value = false
+          return
+        }
+      }
+    }
+    
     // Create FormData to send files
     const formDataToSend = new FormData()
     

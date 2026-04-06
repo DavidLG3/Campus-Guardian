@@ -208,6 +208,36 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             print(f"     Tamaño: {archivo.size / (1024*1024):.2f} MB")
         print(f"{'='*60}\n")
         
+        # Define file size limits in bytes (50MB for videos, 10MB for images)
+        TAMANIO_MAXIMO_VIDEO = 50 * 1024 * 1024  # 50 MB
+        TAMANIO_MAXIMO_IMAGEN = 10 * 1024 * 1024  # 10 MB
+        
+        # Validate file sizes before attempting upload
+        for archivo in archivos:
+            content_type = archivo.content_type
+            if content_type.startswith('image/'):
+                if archivo.size > TAMANIO_MAXIMO_IMAGEN:
+                    tamanio_mb = archivo.size / (1024 * 1024)
+                    return Response(
+                        {
+                            'error': f'La imagen {archivo.name} es demasiado grande ({tamanio_mb:.2f} MB). Máximo permitido: 10 MB',
+                            'file_name': archivo.name,
+                            'max_size_mb': 10
+                        },
+                        status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+                    )
+            elif content_type.startswith('video/'):
+                if archivo.size > TAMANIO_MAXIMO_VIDEO:
+                    tamanio_mb = archivo.size / (1024 * 1024)
+                    return Response(
+                        {
+                            'error': f'El video {archivo.name} es demasiado grande ({tamanio_mb:.2f} MB). Máximo permitido: 50 MB',
+                            'file_name': archivo.name,
+                            'max_size_mb': 50
+                        },
+                        status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+                    )
+        
         # Build serializer input without file objects.
         data = request.data.copy()
         if 'archivos' in data:
@@ -239,14 +269,16 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
                     
                     print(f"💾 Guardando como: {tipo} (resource_type={resource_type})")
                     
-                    # Upload directly to Cloudinary with the correct resource type.
+                    # Upload directly to Cloudinary with the correct resource type and timeout.
                     import cloudinary.uploader
                     from django.core.files.uploadedfile import InMemoryUploadedFile
                     
+                    # Add timeout parameter to prevent hanging on large files
                     upload_result = cloudinary.uploader.upload(
                         archivo,
                         resource_type=resource_type,
-                        folder='incidencias'
+                        folder='incidencias',
+                        timeout=60  # 60 seconds timeout for upload
                     )
                     
                     cloudinary_url = upload_result.get('secure_url')
@@ -281,8 +313,16 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
             print(f"ERROR al crear incidencia: {str(e)}")
             import traceback
             traceback.print_exc()
+            
+            # Provide more specific error messages
+            error_msg = str(e)
+            if 'timeout' in error_msg.lower():
+                error_msg = 'Tiempo de carga agotado. El archivo es demasiado grande o la conexión es lenta. Intenta con un archivo más pequeño.'
+            elif 'size' in error_msg.lower() or 'too large' in error_msg.lower():
+                error_msg = 'El archivo excede el tamaño máximo permitido por Cloudinary.'
+            
             return Response(
-                {'error': f'Error al crear la incidencia: {str(e)}'},
+                {'error': f'Error al crear la incidencia: {error_msg}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

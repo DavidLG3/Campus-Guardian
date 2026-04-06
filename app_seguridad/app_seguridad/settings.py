@@ -232,3 +232,9 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# File Upload Configuration
+# Maximum upload size: 100 MB (prevents memory issues on serverless)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
+FILE_UPLOAD_TIMEOUT = 120  # 120 seconds timeout for uploads
