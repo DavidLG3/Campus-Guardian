@@ -29,7 +29,6 @@
             :key="alerta.id"
             :class="['notificacion-card', { 'no-leida': !alerta.leida }]"
           >
-          >
             <div class="card-header">
               <div class="header-left">
                 <h3>{{ alerta.tipo }}</h3>
@@ -406,7 +405,7 @@ h3 {
 .btn-action {
   padding: 0.75rem 1.5rem;
   background: rgba(0, 255, 136, 0.2);
-  color: var(--success, #00ff88);
+  color: #000;
   border: 2px solid var(--success, #00ff88);
   border-radius: var(--radius-lg, 12px);
   font-weight: 800;
