@@ -16,16 +16,16 @@ const handleStart = async () => {
     const token = localStorage.getItem('token')
     
     if (token && authStore.isAuthenticated) {
-      // If there is an active session, go to the dashboard.
-      await router.replace('/dashboard')
+      // If there is an active session, send admins to the admin panel.
+      await router.replace(authStore.isAdmin ? '/admin' : '/dashboard')
     } else {
-      // If there is no session, stay on the initial route.
-      await router.replace('/')
+      // If there is no session, go to the login screen.
+      await router.replace('/login')
     }
   } catch (error) {
     console.error('Error en handleStart:', error)
-    // In case of error, fall back to the initial route.
-    router.replace('/')
+    // In case of error, fall back to the login screen.
+    router.replace('/login')
   }
 }
 </script>

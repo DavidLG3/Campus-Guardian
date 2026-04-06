@@ -117,6 +117,14 @@
                     ✓ Marcar como Resuelta
                   </button>
                 </div>
+
+                <div v-if="authStore.isAdmin" class="delete-incidencia-section">
+                  <h3>Administración</h3>
+                  <p class="delete-hint">Los administradores pueden eliminar incidencias cuando sea necesario.</p>
+                  <button @click="confirmDeleteIncidencia" class="btn-delete-incidencia">
+                    Eliminar Incidencia
+                  </button>
+                </div>
               </div>
               
               <!-- Show resolution information if it is resolved -->
@@ -296,6 +304,29 @@
             </div>
           </div>
         </div>
+
+        <div v-if="showDeleteIncidenciaModal" class="delete-modal-overlay" @click="cancelDeleteIncidencia">
+          <div class="delete-modal" @click.stop>
+            <div class="delete-modal-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4336" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <h3>Eliminar Incidencia</h3>
+            <p>¿Estás seguro de que quieres eliminar esta incidencia?</p>
+            <p class="warning-text">Se borrarán también sus archivos adjuntos asociados.</p>
+            <div class="delete-modal-actions">
+              <button @click="cancelDeleteIncidencia" class="btn-cancel">
+                Cancelar
+              </button>
+              <button @click="deleteIncidencia" class="btn-confirm-delete">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </AppLayout>
   </div>
@@ -330,6 +361,7 @@ const nuevoComentario = ref('')
 const isSubmittingComentario = ref(false)
 const showDeleteModal = ref(false)
 const comentarioToDelete = ref(null)
+const showDeleteIncidenciaModal = ref(false)
 let map = null
 
 const openImageModal = (url) => {
@@ -337,7 +369,7 @@ const openImageModal = (url) => {
 }
 
 const canChangeStatus = computed(() => 
-  authStore.isOperador // Only security personnel can change states
+  authStore.isOperador || authStore.isAdmin
 )
 
 const isAsignadaAOtro = computed(() => {
@@ -404,6 +436,24 @@ async function resolverIncidencia() {
     }
   } catch (err) {
     error.value = err.response?.data?.detail || 'Error al resolver la incidencia'
+  }
+}
+
+const confirmDeleteIncidencia = () => {
+  showDeleteIncidenciaModal.value = true
+}
+
+const cancelDeleteIncidencia = () => {
+  showDeleteIncidenciaModal.value = false
+}
+
+const deleteIncidencia = async () => {
+  try {
+    await incidenciaStore.remove(incidencia.value.id)
+    showDeleteIncidenciaModal.value = false
+    await router.replace('/incidencias')
+  } catch (err) {
+    error.value = err.response?.data?.detail || 'Error al eliminar la incidencia'
   }
 }
 
@@ -992,6 +1042,44 @@ h2 {
 .btn-back:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+}
+
+.delete-incidencia-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.delete-incidencia-section h3 {
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  font-weight: 800;
+}
+
+.delete-hint {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+  margin-bottom: 1rem;
+}
+
+.btn-delete-incidencia {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius-lg, 12px);
+  background: #ff4336;
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-delete-incidencia:hover {
+  background: #e63227;
+  transform: translateY(-2px);
 }
 
 /* Attached files */

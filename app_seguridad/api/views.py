@@ -169,6 +169,15 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    def destroy(self, request, *args, **kwargs):
+        """Delete an incident only for admin users."""
+        if request.user.tipo != 'admin' and not request.user.is_staff:
+            return Response(
+                {"detail": "Solo los administradores pueden eliminar incidencias"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
     
     def get_serializer_class(self):
         """Use a dedicated serializer when creating incidents."""
@@ -286,9 +295,9 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def cambiar_estado(self, request, pk=None):
         """Update incident status (security staff only)."""
-        if request.user.tipo != 'seguridad' and not request.user.is_staff:
+        if request.user.tipo not in ('seguridad', 'admin') and not request.user.is_staff:
             return Response(
-                {"detail": "Solo usuarios de seguridad pueden cambiar el estado"},
+                {"detail": "Solo usuarios de seguridad o administradores pueden cambiar el estado"},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -351,9 +360,9 @@ class IncidenciaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def resolver(self, request, pk=None):
         """Resolve an incident with a mandatory resolution note."""
-        if request.user.tipo != 'seguridad' and not request.user.is_staff:
+        if request.user.tipo not in ('seguridad', 'admin') and not request.user.is_staff:
             return Response(
-                {"detail": "Solo personal de seguridad puede resolver incidencias"},
+                {"detail": "Solo personal de seguridad o administradores puede resolver incidencias"},
                 status=status.HTTP_403_FORBIDDEN
             )
         
