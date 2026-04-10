@@ -14,23 +14,38 @@ export const useIncidenciaStore = defineStore('incidencia', () => {
     error.value = null
     
     try {
-      const response = await incidenciaService.getAll(params)
-      
-      if (!response || !response.data) {
-        incidencias.value = []
-        return []
+      // DRF paginates results by default, so we fetch every page to avoid
+      // showing only the first 10 incidents in the UI.
+      let page = 1
+      let allIncidencias = []
+      let hasNextPage = true
+
+      while (hasNextPage) {
+        const response = await incidenciaService.getAll({ ...params, page })
+
+        if (!response || !response.data) {
+          break
+        }
+
+        let pageData = []
+        if (response.data.results && Array.isArray(response.data.results)) {
+          pageData = response.data.results
+        } else if (Array.isArray(response.data)) {
+          pageData = response.data
+        }
+
+        allIncidencias = [...allIncidencias, ...pageData]
+        hasNextPage = Boolean(response.data.next)
+        page += 1
+
+        // If the API is not paginated, stop after the first response.
+        if (Array.isArray(response.data)) {
+          break
+        }
       }
-      
-      // DRF retorna paginación: {count, next, previous, results: []}
-      let data = []
-      if (response.data.results && Array.isArray(response.data.results)) {
-        data = response.data.results
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-      }
-      
-      incidencias.value = data
-      return data
+
+      incidencias.value = allIncidencias
+      return allIncidencias
     } catch (err) {
       error.value = err.response?.data?.message || 'Error al cargar incidencias'
       console.error('Error al cargar incidencias:', err)
