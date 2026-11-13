@@ -25,47 +25,10 @@ Campus Guardian es una aplicación web para gestionar incidencias de seguridad e
 - `requirements.txt`: dependencias del backend
 - `frontend/package.json`: dependencias del frontend
 
-## Requisitos
-
-- Python 3.11 o superior
-- Node.js 18 o superior
-- npm
-
-## Instalación
-
-### Backend
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cd app_seguridad
-python manage.py migrate
-python manage.py runserver
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Pruebas
-
-Para ejecutar Cypress:
-
-```bash
-cd frontend
-npm run test:e2e
-```
-
-Antes de lanzar los tests, asegúrate de tener arrancados el backend y el frontend en modo preview o desarrollo según la configuración del proyecto.
-
 ## Producción
 
 La aplicación está disponible en: https://campus-guardian-flame.vercel.app/
+Si se obtienen errores en el login o registro, debe esperar unos minutos hasta que se termine de activar el servidor Render que posee el backend.
 
 ## Licencia
 
